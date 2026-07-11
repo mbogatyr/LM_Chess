@@ -57,3 +57,30 @@ export async function listModels(baseUrl: string): Promise<LMModel[]> {
   }
   return chatModels
 }
+
+export async function loadModel(baseUrl: string, id: string): Promise<void> {
+  const base = normalizeBaseUrl(baseUrl)
+  let response: Response
+  try {
+    response = await fetch(`${base}/api/v0/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: id,
+        messages: [{ role: 'user', content: ' ' }],
+        max_tokens: 1,
+      }),
+    })
+  } catch {
+    throw new LMStudioError(
+      'network',
+      `Can't reach LM Studio at ${base}. Check the URL and that CORS is enabled in LM Studio.`,
+    )
+  }
+  if (!response.ok) {
+    throw new LMStudioError(
+      'http',
+      `LM Studio failed to load "${id}" (HTTP ${response.status}).`,
+    )
+  }
+}
