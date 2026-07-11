@@ -60,15 +60,15 @@ written in this spec.
 
 ## Stack
 
-| Layer | Choice | Rationale |
-|---|---|---|
-| Build/dev server | Vite | Fast, native TS support, minimal config |
-| UI framework | React 18 + TypeScript | Wide ecosystem, chess-board components available for later |
-| Tests | Vitest + @testing-library/react | Runs on the same Vite config, no extra transformer setup |
-| Lint | ESLint (typescript-eslint + eslint-plugin-react-hooks) | De facto standard, catches issues before CI |
-| Formatting | Prettier | Removes style debates, auto-fixable |
-| Package manager | npm | Already available everywhere, no extra install needed for a single package |
-| CI | GitHub Actions | Repo is already on GitHub |
+| Layer                                  | Choice                                                                                              | Rationale                                                                  |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Build/dev server                       | Vite                                                                                                | Fast, native TS support, minimal config                                    |
+| UI framework                           | React 18 + TypeScript                                                                               | Wide ecosystem, chess-board components available for later                 |
+| Tests                                  | Vitest + @testing-library/react                                                                     | Runs on the same Vite config, no extra transformer setup                   |
+| Lint                                   | ESLint (typescript-eslint + eslint-plugin-react-hooks)                                              | De facto standard, catches issues before CI                                |
+| Formatting                             | Prettier                                                                                            | Removes style debates, auto-fixable                                        |
+| Package manager                        | npm                                                                                                 | Already available everywhere, no extra install needed for a single package |
+| CI                                     | GitHub Actions                                                                                      | Repo is already on GitHub                                                  |
 | Hosting target (not part of this spec) | Static files from `dist/` — compatible with Azure Blob Static Website and Azure SWA without changes |
 
 ## The First Green Test

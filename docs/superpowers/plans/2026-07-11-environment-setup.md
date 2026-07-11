@@ -25,6 +25,7 @@
 Stand up the full toolchain and prove it works with one rendering test. Everything in this task lands together because the passing test is the deliverable that proves the scaffold is correct — config, entry files, and test are not independently meaningful.
 
 **Files:**
+
 - Create: `package.json`
 - Create: `tsconfig.json`
 - Create: `tsconfig.node.json`
@@ -38,6 +39,7 @@ Stand up the full toolchain and prove it works with one rendering test. Everythi
 - Create: `src/vite-env.d.ts`
 
 **Interfaces:**
+
 - Consumes: nothing (first task).
 - Produces:
   - npm scripts: `dev`, `build`, `preview`, `test`, `test:watch` (later tasks add `lint`, `typecheck`, `format`).
@@ -242,23 +244,27 @@ git commit -m "chore: scaffold Vite + React + TS project with first green test"
 Add ESLint (flat config), Prettier, and a typecheck script. A reviewer could accept the test scaffold (Task 1) but reject lint rules, so this is its own task.
 
 **Files:**
+
 - Create: `eslint.config.js`
 - Create: `.prettierrc.json`
 - Create: `.prettierignore`
 - Modify: `package.json` (add devDeps + `lint`, `typecheck`, `format`, `format:check` scripts)
 
 **Interfaces:**
+
 - Consumes: `package.json` and source files from Task 1.
 - Produces: npm scripts `lint`, `typecheck`, `format`, `format:check` — consumed by Task 3 (CI).
 
 - [ ] **Step 1: Add tooling devDependencies**
 
 Run:
+
 ```bash
 npm install -D eslint@^9.17.0 @eslint/js@^9.17.0 typescript-eslint@^8.19.0 \
   eslint-plugin-react-hooks@^5.1.0 eslint-plugin-react-refresh@^0.4.16 \
   globals@^15.14.0 prettier@^3.4.2 eslint-config-prettier@^9.1.0
 ```
+
 Expected: installs without error; `package-lock.json` updated.
 
 - [ ] **Step 2: Create `eslint.config.js`** (flat config)
@@ -355,9 +361,11 @@ git commit -m "chore: add ESLint, Prettier, and typecheck tooling"
 Wire lint + typecheck + test into CI on every push/PR to `main`.
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 
 **Interfaces:**
+
 - Consumes: `lint`, `typecheck`, `test` scripts from Tasks 1–2; `package-lock.json` for `npm ci`.
 - Produces: a passing CI check on GitHub.
 
@@ -404,6 +412,7 @@ git commit -m "ci: add GitHub Actions pipeline (lint, typecheck, test)"
 ```bash
 git push origin main
 ```
+
 Expected: On GitHub, the "CI" workflow runs on the push and all steps pass (green check). Verify via `gh run list --limit 1` and `gh run watch` (or the GitHub UI). Do not consider the plan complete until CI is observed green.
 
 ---
@@ -411,6 +420,7 @@ Expected: On GitHub, the "CI" workflow runs on the push and all steps pass (gree
 ## Self-Review
 
 **Spec coverage:**
+
 - Architecture / folder structure (`src/engine|llm|ui`, root package) → Task 1 (steps 10, and all root config files). ✓
 - Stack (Vite, React+TS, Vitest, ESLint, Prettier, npm) → Task 1 (Vite/React/TS/Vitest) + Task 2 (ESLint/Prettier). ✓
 - First green test (`App.tsx` stub + `App.test.tsx`, `npm test`) → Task 1 steps 8, 11, 13. ✓
