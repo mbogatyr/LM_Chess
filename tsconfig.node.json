@@ -10,7 +10,9 @@
     "moduleDetection": "force",
     "strict": true,
     "composite": true,
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "outDir": "./node_modules/.tmp/vite-config"
   },
   "include": ["vite.config.ts"]
 }
