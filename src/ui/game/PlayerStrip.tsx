@@ -21,7 +21,13 @@ export function PlayerStrip({
         style={variant === 'you' ? { color: 'var(--color-accent)' } : undefined}
       >
         {variant === 'you' ? (
-          <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 256 256"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path d={USER_PATH} />
           </svg>
         ) : (

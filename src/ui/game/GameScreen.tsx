@@ -5,6 +5,7 @@ import { Board } from './Board'
 import { HintConsole } from './HintConsole'
 import { PlayerStrip } from './PlayerStrip'
 import { MoveList } from './MoveList'
+import type { HintLevel } from './chessDemo'
 
 export function GameScreen({
   opponentName,
@@ -18,10 +19,16 @@ export function GameScreen({
   pieceStyle: PieceStyle
 }) {
   const { t } = useI18n()
-  const [hintLevel, setHintLevel] = useState(0)
-  const selectLevel = (lv: number) =>
+  const [hintLevel, setHintLevel] = useState<HintLevel>(0)
+  const selectLevel = (lv: HintLevel) =>
     setHintLevel((cur) => (cur === lv ? 0 : lv))
-  const cycleHint = () => setHintLevel((cur) => (cur % 3) + 1)
+  const cycleHint = () =>
+    setHintLevel((cur) => {
+      // (cur % 3) + 1 always yields 1, 2, or 3 for cur in 0..3, so this
+      // is provably a valid HintLevel despite the arithmetic being typed
+      // as `number`.
+      return ((cur % 3) + 1) as HintLevel
+    })
 
   return (
     <div className="game">

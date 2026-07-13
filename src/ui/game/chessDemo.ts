@@ -2,6 +2,8 @@ import type { Color, PieceType } from './pieceSvgs'
 
 export type Square = { color: Color; type: PieceType } | null
 
+export type HintLevel = 0 | 1 | 2 | 3
+
 export const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
@@ -15,6 +17,8 @@ function parseFEN(fen: string): Square[][] {
       } else {
         squares.push({
           color: ch === ch.toUpperCase() ? 'w' : 'b',
+          // Safe: START_FEN is a hardcoded valid FEN literal, so every
+          // letter is guaranteed to be one of the six piece-type chars.
           type: ch.toLowerCase() as PieceType,
         })
       }

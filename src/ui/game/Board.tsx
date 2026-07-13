@@ -6,6 +6,7 @@ import {
   FILES,
   HINT,
   HINT_LEGAL,
+  type HintLevel,
 } from './chessDemo'
 import { Piece } from './Piece'
 
@@ -59,7 +60,7 @@ export function Board({
   boardStyle,
   pieceStyle,
 }: {
-  hintLevel: number
+  hintLevel: HintLevel
   boardStyle: BoardStyle
   pieceStyle: PieceStyle
 }) {

@@ -8,6 +8,8 @@ export function Piece({ color, type }: { color: Color; type: PieceType }) {
         className={`cp cp-${type}`}
         viewBox={s.vb}
         aria-hidden="true"
+        // Safe: `inner` is a trusted build-time constant (ported piece
+        // artwork from pieceSvgs), not user input, so there's no XSS surface.
         dangerouslySetInnerHTML={{ __html: s.inner }}
       />
     </span>
