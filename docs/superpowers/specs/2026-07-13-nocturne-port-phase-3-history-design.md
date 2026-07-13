@@ -129,12 +129,16 @@ The current `Topbar` renders brand + pill + lang toggle. Add a `.topbar-tabs`
 block with two `.tab` buttons (`tab_game`, `tab_history`) **between the brand
 and the pill**, matching `Chrome.render()` order.
 
-- Topbar reads `screen` and `setScreen` from `useAppState` (it already uses
-  `useI18n`). The `connected` prop stays.
+- Topbar stays presentational and receives `screen: Screen` and
+  `onNavigate: (s: Screen) => void` as **props** (consistent with how
+  `connected`, `elo`, `boardStyle` already flow App → AppShell/GameScreen).
+  `AppShell` gains `screen` + `onNavigate` and forwards them to `Topbar`; `App`
+  passes `screen={screen}` and `onNavigate={setScreen}`. The `connected` prop
+  stays.
 - Tabs render **only** when `screen === 'game' || screen === 'history'`;
   otherwise the tabs block is omitted entirely (onboarding shows no tabs).
-- `data-tab="game"` → `setScreen('game')`; `data-tab="history"` →
-  `setScreen('history')`.
+- `data-tab="game"` → `onNavigate('game')`; `data-tab="history"` →
+  `onNavigate('history')`.
 - `aria-current` is `"true"` on the tab matching the current screen, else
   `"false"` (mirrors the prototype's `syncTabs`).
 - The `◧` Appearance button from `Chrome.render()` is **not** added.
@@ -163,9 +167,10 @@ history route.
   (including `63%` and the `+`-prefixed streak); renders 8 body rows; result
   cells carry `res win` / `res loss` / `res draw` classes; toggling the language
   (via the i18n provider) swaps a date and an opening name RU↔EN.
-- **`Topbar`**: tabs are present when `screen` is `game` / `history` and absent
-  during `onb-connect`; clicking History calls `setScreen('history')` and Game
-  calls `setScreen('game')`; the active tab has `aria-current="true"`.
+- **`Topbar`**: rendered with `screen`/`onNavigate` props — tabs are present when
+  `screen` is `game` / `history` and absent during `onb-connect`; clicking
+  History calls `onNavigate('history')` and Game calls `onNavigate('game')`; the
+  active tab has `aria-current="true"`.
 - Existing `src/llm`, connection, onboarding, and game tests stay green.
 - Visuals verified live in the browser against LM Studio (`google/gemma-4-e4b`,
   `localhost:1234`), not pixel-tested.
