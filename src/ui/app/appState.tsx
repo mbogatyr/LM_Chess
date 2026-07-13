@@ -10,6 +10,9 @@ import {
 export type Screen =
   'onb-connect' | 'onb-models' | 'onb-elo' | 'game' | 'history'
 
+export type BoardStyle = 'mono' | 'contrast' | 'accent'
+export type PieceStyle = 'neon' | 'flat' | 'outline'
+
 const STORAGE_KEY = 'nocturne-chess'
 
 function readStore(): Record<string, unknown> {
@@ -20,8 +23,11 @@ function readStore(): Record<string, unknown> {
   }
 }
 
-function writeElo(elo: number): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...readStore(), elo }))
+function persist(patch: Record<string, unknown>): void {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ ...readStore(), ...patch }),
+  )
 }
 
 type AppStateValue = {
@@ -29,6 +35,10 @@ type AppStateValue = {
   setScreen: (s: Screen) => void
   elo: number
   setElo: (n: number) => void
+  boardStyle: BoardStyle
+  setBoardStyle: (s: BoardStyle) => void
+  pieceStyle: PieceStyle
+  setPieceStyle: (s: PieceStyle) => void
 }
 const AppStateContext = createContext<AppStateValue | null>(null)
 
@@ -38,13 +48,40 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const stored = readStore().elo
     return typeof stored === 'number' ? stored : 1000
   })
+  const [boardStyle, setBoardStyleState] = useState<BoardStyle>(() =>
+    readStore().boardStyle === 'contrast' || readStore().boardStyle === 'accent'
+      ? (readStore().boardStyle as BoardStyle)
+      : 'mono',
+  )
+  const [pieceStyle, setPieceStyleState] = useState<PieceStyle>(() =>
+    readStore().pieceStyle === 'flat' || readStore().pieceStyle === 'outline'
+      ? (readStore().pieceStyle as PieceStyle)
+      : 'neon',
+  )
   const setElo = useCallback((n: number) => {
     setEloState(n)
-    writeElo(n)
+    persist({ elo: n })
+  }, [])
+  const setBoardStyle = useCallback((s: BoardStyle) => {
+    setBoardStyleState(s)
+    persist({ boardStyle: s })
+  }, [])
+  const setPieceStyle = useCallback((s: PieceStyle) => {
+    setPieceStyleState(s)
+    persist({ pieceStyle: s })
   }, [])
   const value = useMemo(
-    () => ({ screen, setScreen, elo, setElo }),
-    [screen, elo, setElo],
+    () => ({
+      screen,
+      setScreen,
+      elo,
+      setElo,
+      boardStyle,
+      setBoardStyle,
+      pieceStyle,
+      setPieceStyle,
+    }),
+    [screen, elo, setElo, boardStyle, setBoardStyle, pieceStyle, setPieceStyle],
   )
   return (
     <AppStateContext.Provider value={value}>

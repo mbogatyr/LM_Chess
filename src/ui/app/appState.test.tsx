@@ -31,3 +31,20 @@ test('eloBand picks the band by upper bound', () => {
   expect(eloBand(1000).ru[0]).toBe('Уверенный')
   expect(eloBand(1500).en[0]).toBe('Candidate')
 })
+
+test('defaults boardStyle to mono and pieceStyle to neon', () => {
+  const { result } = renderHook(() => useAppState(), { wrapper })
+  expect(result.current.boardStyle).toBe('mono')
+  expect(result.current.pieceStyle).toBe('neon')
+})
+
+test('setBoardStyle and setPieceStyle update and persist', () => {
+  const { result } = renderHook(() => useAppState(), { wrapper })
+  act(() => result.current.setBoardStyle('accent'))
+  act(() => result.current.setPieceStyle('outline'))
+  expect(result.current.boardStyle).toBe('accent')
+  expect(result.current.pieceStyle).toBe('outline')
+  const stored = JSON.parse(localStorage.getItem('nocturne-chess')!)
+  expect(stored.boardStyle).toBe('accent')
+  expect(stored.pieceStyle).toBe('outline')
+})
