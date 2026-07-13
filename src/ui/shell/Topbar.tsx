@@ -1,12 +1,10 @@
 import { useI18n } from '../app/i18n'
-import { Logo } from './Logo'
 
 export function Topbar({ connected }: { connected: boolean }) {
   const { t, lang, setLang } = useI18n()
   return (
     <div className="topbar">
       <div className="brand">
-        <Logo />
         <div className="brand-txt">
           <b>NeuroChess</b>
           <span>{t('subtitle')}</span>
