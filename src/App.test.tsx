@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import App from './App'
@@ -43,10 +43,10 @@ test('connect → choose model → ELO → game', async () => {
   await userEvent.click(
     await screen.findByRole('button', { name: 'Начать партию' }),
   )
-  // game placeholder
-  await waitFor(() =>
-    expect(screen.getByText('Модель думает…')).toBeInTheDocument(),
-  )
+  // game screen: board rendered, your-move status, opponent = chosen model
+  expect(await screen.findByText('Ваш ход')).toBeInTheDocument()
+  expect(screen.getByText('google/gemma-4-e4b')).toBeInTheDocument()
+  expect(document.querySelector('.game .board')).not.toBeNull()
 })
 
 test('topbar language toggle switches copy on the connect screen', async () => {

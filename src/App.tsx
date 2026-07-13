@@ -5,10 +5,11 @@ import { OnboardingConnect } from './ui/onboarding/OnboardingConnect'
 import { OnboardingModels } from './ui/onboarding/OnboardingModels'
 import { OnboardingElo } from './ui/onboarding/OnboardingElo'
 import { GamePlaceholder } from './ui/game/GamePlaceholder'
+import { GameScreen } from './ui/game/GameScreen'
 
 export default function App() {
   const conn = useConnection()
-  const { screen, setScreen } = useAppState()
+  const { screen, setScreen, elo, boardStyle, pieceStyle } = useAppState()
   const connected =
     conn.state.phase === 'connected' || conn.state.phase === 'ready'
 
@@ -29,7 +30,15 @@ export default function App() {
           onStart={() => setScreen('game')}
         />
       )}
-      {(screen === 'game' || screen === 'history') && <GamePlaceholder />}
+      {screen === 'game' && (
+        <GameScreen
+          opponentName={conn.state.activeModel ?? 'Qwen2.5 14B'}
+          elo={elo}
+          boardStyle={boardStyle}
+          pieceStyle={pieceStyle}
+        />
+      )}
+      {screen === 'history' && <GamePlaceholder />}
     </AppShell>
   )
 }
