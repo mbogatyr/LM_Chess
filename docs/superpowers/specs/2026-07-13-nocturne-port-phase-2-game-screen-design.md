@@ -57,7 +57,7 @@ Details, matching the prototype:
   with 64 `.sq` cells. Rank labels on file a, file labels on rank 1. Pieces from
   the starting position. Hint-driven classes layered on top (see Hints).
 - **You strip** — the accent user-glyph avatar, `{you}`, demo `ELO 1280 ·
-  {yoursub}`, empty captured strip, clock `10:00 .active`.
+{yoursub}`, empty captured strip, clock `10:00 .active`.
 - **Status line** — turn dot + `{yourmove}` / `{yoursub}` (fixed; White to
   move).
 - **Hints panel** — heading `{hints_h}`, a refresh icon-button, three

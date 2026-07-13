@@ -57,10 +57,12 @@ src/
 ### Task 1: App state — `boardStyle` / `pieceStyle`
 
 **Files:**
+
 - Modify: `src/ui/app/appState.tsx`
 - Test: `src/ui/app/appState.test.tsx`
 
 **Interfaces:**
+
 - Consumes: existing `AppStateProvider`, `useAppState`, `STORAGE_KEY = 'nocturne-chess'`.
 - Produces:
   - `export type BoardStyle = 'mono' | 'contrast' | 'accent'`
@@ -108,7 +110,10 @@ Replace the `writeElo` helper with a generic persister and add readers:
 
 ```tsx
 function persist(patch: Record<string, unknown>): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...readStore(), ...patch }))
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ ...readStore(), ...patch }),
+  )
 }
 ```
 
@@ -197,11 +202,13 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: Piece SVG data + `Piece` component
 
 **Files:**
+
 - Create: `src/ui/game/pieceSvgs.ts`
 - Create: `src/ui/game/Piece.tsx`
 - Create: `src/ui/game/Piece.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `PieceType`, `Color` types (defined here in `pieceSvgs.ts`, re-used by `chessDemo.ts` in Task 3).
 - Produces:
   - `export type Color = 'w' | 'b'`
@@ -325,10 +332,12 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: `chessDemo.ts` — demo data + pure helpers
 
 **Files:**
+
 - Create: `src/ui/game/chessDemo.ts`
 - Create: `src/ui/game/chessDemo.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Color`, `PieceType` from `./pieceSvgs`.
 - Produces:
   - `export type Square = { color: Color; type: PieceType } | null`
@@ -345,13 +354,7 @@ Create `src/ui/game/chessDemo.test.ts`:
 
 ```ts
 import { expect, test } from 'vitest'
-import {
-  START_POSITION,
-  sqName,
-  nameToRC,
-  HINT,
-  HINT_LEGAL,
-} from './chessDemo'
+import { START_POSITION, sqName, nameToRC, HINT, HINT_LEGAL } from './chessDemo'
 
 test('sqName maps array indices to algebraic squares', () => {
   expect(sqName(0, 0)).toBe('a8')
@@ -504,14 +507,17 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: `Board` component
 
 **Files:**
+
 - Create: `src/ui/game/Board.tsx`
 - Create: `src/ui/game/Board.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `START_POSITION`, `sqName`, `nameToRC`, `FILES`, `HINT`, `HINT_LEGAL` from `./chessDemo`; `Piece` from `./Piece`; `BoardStyle`, `PieceStyle` from `../app/appState`.
 - Produces: `export function Board({ hintLevel, boardStyle, pieceStyle }: { hintLevel: number; boardStyle: BoardStyle; pieceStyle: PieceStyle }): JSX.Element` — renders `.board-wrap.pieces--{pieceStyle}` › `.board.board--{boardStyle}` with 64 `.sq`, and the `.arrows` overlay when `hintLevel === 3`.
 
 Behaviour (pure function of `hintLevel`), ported from `board.js.render` / `renderArrows`:
+
 - Each square `.sq` also gets `light`/`dark` by `(r + c) % 2 === 0`.
 - `hint1` when `hintLevel >= 1 && name === HINT.piece`.
 - `hint-target` when `hintLevel === 2 && HINT.targets.includes(name)`.
@@ -712,14 +718,17 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 5: `HintConsole` component
 
 **Files:**
+
 - Create: `src/ui/game/HintConsole.tsx`
 - Create: `src/ui/game/HintConsole.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `useI18n` (+ `TKey`) from `../app/i18n`; `HINT` from `./chessDemo`.
 - Produces: `export function HintConsole({ level, onSelect, onRefresh }: { level: number; onSelect: (lv: number) => void; onRefresh: () => void }): JSX.Element`. It is presentational: it renders the three `.hint-lv` buttons (with `aria-pressed={level === lv}`), the refresh `.btn-icon`, and the `.hint-readout`, and calls `onSelect(lv)` / `onRefresh()`. The parent owns `level` and the toggle/cycle logic.
 
 Readout, ported from `game.js.renderHint`:
+
 - `level === 0`: `<div class="hint-readout empty">{t('hint_empty')}</div>`.
 - `level 1..3`: `<div class="hint-readout">` with a `.kicker` (`{t('hints_h')} · {level}/3`), the bold title, and the body — from `HINT[lang]['l' + level]`.
 
@@ -741,7 +750,9 @@ afterEach(() => localStorage.clear())
 const wrap = (node: ReactNode) => <I18nProvider>{node}</I18nProvider>
 
 test('level 0 shows the empty prompt and no button is pressed', () => {
-  render(wrap(<HintConsole level={0} onSelect={() => {}} onRefresh={() => {}} />))
+  render(
+    wrap(<HintConsole level={0} onSelect={() => {}} onRefresh={() => {}} />),
+  )
   expect(
     screen.getByText('Застряли? Выберите уровень подсказки.'),
   ).toBeInTheDocument()
@@ -751,7 +762,9 @@ test('level 0 shows the empty prompt and no button is pressed', () => {
 })
 
 test('level 2 marks the second button pressed and shows its readout', () => {
-  render(wrap(<HintConsole level={2} onSelect={() => {}} onRefresh={() => {}} />))
+  render(
+    wrap(<HintConsole level={2} onSelect={() => {}} onRefresh={() => {}} />),
+  )
   expect(screen.getByText('Захват центра')).toBeInTheDocument()
   expect(screen.getByText('Подсказки · 2/3')).toBeInTheDocument()
 })
@@ -877,12 +890,14 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 6: `PlayerStrip` + `MoveList` components
 
 **Files:**
+
 - Create: `src/ui/game/PlayerStrip.tsx`
 - Create: `src/ui/game/MoveList.tsx`
 - Create: `src/ui/game/PlayerStrip.test.tsx`
 - Create: `src/ui/game/MoveList.test.tsx`
 
 **Interfaces:**
+
 - `PlayerStrip` — Produces `export function PlayerStrip({ variant, name, sub, clock, active }: { variant: 'opp' | 'you'; name: string; sub: string; clock: string; active?: boolean }): JSX.Element`. Renders `.player` › avatar (`✳` for `opp`, the accent user glyph for `you`) + `.who` (`<b>{name}</b><small>{sub}</small>`) + empty `.captured` + `.clock` (`+ ' active'` when `active`).
 - `MoveList` — Consumes `useI18n`. Produces `export function MoveList(): JSX.Element`. Renders the moves `.panel` with inert (disabled) `{offerdraw}` / `{resign}` buttons and a `.moves` table whose single row shows the empty-state text ("Сделайте первый ход" / "Make the first move").
 
@@ -897,7 +912,12 @@ import { PlayerStrip } from './PlayerStrip'
 
 test('renders name, subtitle and clock', () => {
   const { container, getByText } = render(
-    <PlayerStrip variant="opp" name="gemma" sub="Соперник · ELO 1000" clock="10:00" />,
+    <PlayerStrip
+      variant="opp"
+      name="gemma"
+      sub="Соперник · ELO 1000"
+      clock="10:00"
+    />,
   )
   expect(getByText('gemma')).toBeInTheDocument()
   expect(getByText('Соперник · ELO 1000')).toBeInTheDocument()
@@ -1048,10 +1068,12 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 7: `GameScreen` composition
 
 **Files:**
+
 - Create: `src/ui/game/GameScreen.tsx`
 - Create: `src/ui/game/GameScreen.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `useI18n`; `BoardStyle`/`PieceStyle` from `../app/appState`; `Board`, `HintConsole`, `PlayerStrip`, `MoveList`.
 - Produces: `export function GameScreen({ opponentName, elo, boardStyle, pieceStyle }: { opponentName: string; elo: number; boardStyle: BoardStyle; pieceStyle: PieceStyle }): JSX.Element`. Owns `hintLevel` via `useState<number>(0)`. `selectLevel(lv)` toggles (`cur === lv ? 0 : lv`); `cycleHint()` sets `(cur % 3) + 1`. Layout: `.game` › (`.board-col` with opponent strip, `Board`, you strip) + (`.side-col` with `.status`, `HintConsole`, `MoveList`). The you strip has `active`; the status line is fixed to `{yourmove}` / `{yoursub}`.
 
@@ -1219,10 +1241,12 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 8: Route `game` to `GameScreen`
 
 **Files:**
+
 - Modify: `src/App.tsx`
 - Test: `src/App.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `GameScreen`; `useAppState` (now exposing `boardStyle`/`pieceStyle`); `useConnection` (`state.activeModel`).
 - Produces: on `screen === 'game'`, renders `<GameScreen opponentName={conn.state.activeModel ?? 'Qwen2.5 14B'} elo={elo} boardStyle={boardStyle} pieceStyle={pieceStyle} />`. `screen === 'history'` still renders `<GamePlaceholder />`.
 
@@ -1239,19 +1263,19 @@ also the opponent-strip name — asserting it proves the wiring.
 In that test, replace the final block:
 
 ```tsx
-  // game placeholder
-  await waitFor(() =>
-    expect(screen.getByText('Модель думает…')).toBeInTheDocument(),
-  )
+// game placeholder
+await waitFor(() =>
+  expect(screen.getByText('Модель думает…')).toBeInTheDocument(),
+)
 ```
 
 with:
 
 ```tsx
-  // game screen: board rendered, your-move status, opponent = chosen model
-  expect(await screen.findByText('Ваш ход')).toBeInTheDocument()
-  expect(screen.getByText('google/gemma-4-e4b')).toBeInTheDocument()
-  expect(document.querySelector('.game .board')).not.toBeNull()
+// game screen: board rendered, your-move status, opponent = chosen model
+expect(await screen.findByText('Ваш ход')).toBeInTheDocument()
+expect(screen.getByText('google/gemma-4-e4b')).toBeInTheDocument()
+expect(document.querySelector('.game .board')).not.toBeNull()
 ```
 
 The now-unused `waitFor` import may be removed if no other test uses it (check
@@ -1278,21 +1302,27 @@ const { screen, setScreen, elo, boardStyle, pieceStyle } = useAppState()
 Replace:
 
 ```tsx
-{(screen === 'game' || screen === 'history') && <GamePlaceholder />}
+{
+  ;(screen === 'game' || screen === 'history') && <GamePlaceholder />
+}
 ```
 
 with:
 
 ```tsx
-{screen === 'game' && (
-  <GameScreen
-    opponentName={conn.state.activeModel ?? 'Qwen2.5 14B'}
-    elo={elo}
-    boardStyle={boardStyle}
-    pieceStyle={pieceStyle}
-  />
-)}
-{screen === 'history' && <GamePlaceholder />}
+{
+  screen === 'game' && (
+    <GameScreen
+      opponentName={conn.state.activeModel ?? 'Qwen2.5 14B'}
+      elo={elo}
+      boardStyle={boardStyle}
+      pieceStyle={pieceStyle}
+    />
+  )
+}
+{
+  screen === 'history' && <GamePlaceholder />
+}
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
