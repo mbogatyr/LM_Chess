@@ -65,3 +65,13 @@ test('Load triggers the real load for that model', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Загрузить' }))
   expect(c.load).toHaveBeenCalledWith('not-loaded-model')
 })
+
+test('renders a load error as an alert', () => {
+  const c = conn({ state: { models, loadingModelId: null, error: 'boom' } })
+  render(
+    <I18nProvider>
+      <OnboardingModels conn={c} onUse={() => {}} />
+    </I18nProvider>,
+  )
+  expect(screen.getByRole('alert')).toHaveTextContent('boom')
+})

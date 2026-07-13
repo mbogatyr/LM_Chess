@@ -13,7 +13,7 @@ export function OnboardingModels({
   onUse: () => void
 }) {
   const { t } = useI18n()
-  const { models, loadingModelId } = conn.state
+  const { models, loadingModelId, error } = conn.state
 
   return (
     <div className="onb">
@@ -21,6 +21,7 @@ export function OnboardingModels({
         <Steps active={2} />
         <h2>{t('model_h')}</h2>
         <p className="lede">{t('model_p')}</p>
+        {error && <p role="alert">{error}</p>}
         <div className="model-list">
           {models.map((model: LMModel) => {
             const loaded = model.state === 'loaded'
