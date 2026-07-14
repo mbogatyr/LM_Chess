@@ -37,10 +37,12 @@
 ### Task 1: Match-history data + stats helper
 
 **Files:**
+
 - Modify: `src/ui/app/demoData.ts` (append below the existing `eloBand`)
 - Test: `src/ui/app/demoData.test.ts` (create)
 
 **Interfaces:**
+
 - Consumes: nothing new.
 - Produces:
   - `type HistoryEntry = { date: string; edate: string; opp: string; elo: number; len: number; res: 'win' | 'loss' | 'draw'; open: string; eopen: string }`
@@ -56,10 +58,7 @@ Create `src/ui/app/demoData.test.ts`:
 import { expect, test } from 'vitest'
 import { HISTORY, historyStats, type HistoryEntry } from './demoData'
 
-const entry = (
-  res: HistoryEntry['res'],
-  elo = 1000,
-): HistoryEntry => ({
+const entry = (res: HistoryEntry['res'], elo = 1000): HistoryEntry => ({
   date: '',
   edate: '',
   opp: '',
@@ -121,14 +120,86 @@ export type HistoryEntry = {
 }
 
 export const HISTORY: HistoryEntry[] = [
-  { date: '11 июл', edate: 'Jul 11', opp: 'Qwen2.5 14B', elo: 1350, len: 41, res: 'win', open: 'Итальянская партия', eopen: 'Italian Game' },
-  { date: '10 июл', edate: 'Jul 10', opp: 'Llama 3.1 8B', elo: 1200, len: 58, res: 'loss', open: 'Сицилианская защита', eopen: 'Sicilian Defence' },
-  { date: '9 июл', edate: 'Jul 9', opp: 'Qwen2.5 14B', elo: 1350, len: 33, res: 'win', open: 'Ферзевый гамбит', eopen: "Queen's Gambit" },
-  { date: '8 июл', edate: 'Jul 8', opp: 'Mistral Nemo', elo: 1100, len: 27, res: 'win', open: 'Испанская партия', eopen: 'Ruy López' },
-  { date: '7 июл', edate: 'Jul 7', opp: 'Phi-3.5 Mini', elo: 800, len: 22, res: 'win', open: 'Защита Каро-Канн', eopen: 'Caro-Kann' },
-  { date: '6 июл', edate: 'Jul 6', opp: 'Qwen2.5 14B', elo: 1350, len: 64, res: 'draw', open: 'Английское начало', eopen: 'English Opening' },
-  { date: '5 июл', edate: 'Jul 5', opp: 'DeepSeek R1 7B', elo: 950, len: 45, res: 'loss', open: 'Французская защита', eopen: 'French Defence' },
-  { date: '4 июл', edate: 'Jul 4', opp: 'Llama 3.1 8B', elo: 1200, len: 38, res: 'win', open: 'Славянская защита', eopen: 'Slav Defence' },
+  {
+    date: '11 июл',
+    edate: 'Jul 11',
+    opp: 'Qwen2.5 14B',
+    elo: 1350,
+    len: 41,
+    res: 'win',
+    open: 'Итальянская партия',
+    eopen: 'Italian Game',
+  },
+  {
+    date: '10 июл',
+    edate: 'Jul 10',
+    opp: 'Llama 3.1 8B',
+    elo: 1200,
+    len: 58,
+    res: 'loss',
+    open: 'Сицилианская защита',
+    eopen: 'Sicilian Defence',
+  },
+  {
+    date: '9 июл',
+    edate: 'Jul 9',
+    opp: 'Qwen2.5 14B',
+    elo: 1350,
+    len: 33,
+    res: 'win',
+    open: 'Ферзевый гамбит',
+    eopen: "Queen's Gambit",
+  },
+  {
+    date: '8 июл',
+    edate: 'Jul 8',
+    opp: 'Mistral Nemo',
+    elo: 1100,
+    len: 27,
+    res: 'win',
+    open: 'Испанская партия',
+    eopen: 'Ruy López',
+  },
+  {
+    date: '7 июл',
+    edate: 'Jul 7',
+    opp: 'Phi-3.5 Mini',
+    elo: 800,
+    len: 22,
+    res: 'win',
+    open: 'Защита Каро-Канн',
+    eopen: 'Caro-Kann',
+  },
+  {
+    date: '6 июл',
+    edate: 'Jul 6',
+    opp: 'Qwen2.5 14B',
+    elo: 1350,
+    len: 64,
+    res: 'draw',
+    open: 'Английское начало',
+    eopen: 'English Opening',
+  },
+  {
+    date: '5 июл',
+    edate: 'Jul 5',
+    opp: 'DeepSeek R1 7B',
+    elo: 950,
+    len: 45,
+    res: 'loss',
+    open: 'Французская защита',
+    eopen: 'French Defence',
+  },
+  {
+    date: '4 июл',
+    edate: 'Jul 4',
+    opp: 'Llama 3.1 8B',
+    elo: 1200,
+    len: 38,
+    res: 'win',
+    open: 'Славянская защита',
+    eopen: 'Slav Defence',
+  },
 ]
 
 export type HistoryStats = {
@@ -171,10 +242,12 @@ git commit -m "feat: add match-history demo data and stats helper"
 ### Task 2: History screen
 
 **Files:**
+
 - Create: `src/ui/history/HistoryScreen.tsx`
 - Test: `src/ui/history/HistoryScreen.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `HISTORY`, `historyStats` from `../app/demoData`; `useI18n` from `../app/i18n` (returns `{ t, lang, setLang }`; `t(key: TKey)` where `'win' | 'loss' | 'draw'` are valid keys).
 - Produces: `function HistoryScreen(): JSX.Element` (no props).
 
@@ -340,10 +413,12 @@ git commit -m "feat: add static History screen on demo data"
 ### Task 3: Topbar Game/History tabs
 
 **Files:**
+
 - Modify: `src/ui/shell/Topbar.tsx`
 - Modify: `src/ui/shell/Topbar.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `Screen` type from `../app/appState` (`'onb-connect' | 'onb-models' | 'onb-elo' | 'game' | 'history'`); `useI18n`.
 - Produces: `Topbar` now takes `{ connected: boolean; screen: Screen; onNavigate: (s: Screen) => void }`.
 
@@ -531,12 +606,14 @@ git commit -m "feat: add Game/History tabs to the topbar"
 ### Task 4: Wire the shell and route to History
 
 **Files:**
+
 - Modify: `src/ui/shell/AppShell.tsx`
 - Modify: `src/App.tsx`
 
 No new unit test: both files are thin composition. They are covered by `tsc -b` (props must line up), the full test suite (existing `App.test.tsx` still renders the default `onb-connect` screen), and the live-browser check below.
 
 **Interfaces:**
+
 - Consumes: `Topbar` `{ connected, screen, onNavigate }` (Task 3); `HistoryScreen` (Task 2); `Screen`, `useAppState` (`{ screen, setScreen, ... }`).
 - Produces: `AppShell` now takes `{ connected, screen, onNavigate, children }`.
 
@@ -598,7 +675,9 @@ In `src/App.tsx`:
    ```
 4. Replace the history branch:
    ```tsx
-   {screen === 'history' && <HistoryScreen />}
+   {
+     screen === 'history' && <HistoryScreen />
+   }
    ```
 
 After the edits `src/App.tsx` reads:
@@ -677,6 +756,7 @@ With LM Studio running on `http://localhost:1234` (model `google/gemma-4-e4b`):
 ## Self-Review
 
 **Spec coverage:**
+
 - History screen (tiles + table, bilingual, demo data) → Task 2. ✓
 - `HISTORY` data + `historyStats` arithmetic (played 8 / winRate 63 / streak 1 / best 1350) → Task 1. ✓
 - Topbar Game/History tabs, visible only on game/history, `aria-current`, no Appearance button → Task 3. ✓
