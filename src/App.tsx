@@ -4,8 +4,8 @@ import { AppShell } from './ui/shell/AppShell'
 import { OnboardingConnect } from './ui/onboarding/OnboardingConnect'
 import { OnboardingModels } from './ui/onboarding/OnboardingModels'
 import { OnboardingElo } from './ui/onboarding/OnboardingElo'
-import { GamePlaceholder } from './ui/game/GamePlaceholder'
 import { GameScreen } from './ui/game/GameScreen'
+import { HistoryScreen } from './ui/history/HistoryScreen'
 
 export default function App() {
   const conn = useConnection()
@@ -14,7 +14,7 @@ export default function App() {
     conn.state.phase === 'connected' || conn.state.phase === 'ready'
 
   return (
-    <AppShell connected={connected}>
+    <AppShell connected={connected} screen={screen} onNavigate={setScreen}>
       {screen === 'onb-connect' && (
         <OnboardingConnect
           conn={conn}
@@ -38,7 +38,7 @@ export default function App() {
           pieceStyle={pieceStyle}
         />
       )}
-      {screen === 'history' && <GamePlaceholder />}
+      {screen === 'history' && <HistoryScreen />}
     </AppShell>
   )
 }

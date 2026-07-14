@@ -57,23 +57,23 @@ Add, alongside the existing `ELO_BANDS`:
 
 ```ts
 export type HistoryEntry = {
-  date: string   // RU short date, e.g. "11 июл"
-  edate: string  // EN short date, e.g. "Jul 11"
-  opp: string    // opponent model name
+  date: string // RU short date, e.g. "11 июл"
+  edate: string // EN short date, e.g. "Jul 11"
+  opp: string // opponent model name
   elo: number
-  len: number    // move count
+  len: number // move count
   res: 'win' | 'loss' | 'draw'
-  open: string   // RU opening name
-  eopen: string  // EN opening name
+  open: string // RU opening name
+  eopen: string // EN opening name
 }
 
-export const HISTORY: HistoryEntry[] = [ /* 8 entries, verbatim from data.js */ ]
+export const HISTORY: HistoryEntry[] = [/* 8 entries, verbatim from data.js */]
 
 export type HistoryStats = {
   played: number
-  winRate: number  // integer percent
-  streak: number   // count of leading wins from the top of HISTORY
-  best: number     // max elo
+  winRate: number // integer percent
+  streak: number // count of leading wins from the top of HISTORY
+  best: number // max elo
 }
 
 export function historyStats(entries: HistoryEntry[]): HistoryStats
