@@ -129,10 +129,18 @@ Other standing rules:
   - Phase 2 (static game screen) — spec: `docs/superpowers/specs/2026-07-13-nocturne-port-phase-2-game-screen-design.md`, plan: `docs/superpowers/plans/2026-07-13-nocturne-port-phase-2.md`.
   - Phase 3 (History screen + topbar tabs) — spec: `docs/superpowers/specs/2026-07-13-nocturne-port-phase-3-history-design.md`, plan: `docs/superpowers/plans/2026-07-13-nocturne-port-phase-3.md`.
 
+- Real gameplay track (chess.js). Decomposed into sub-projects A→B→C→D.
+  - Sub-project A — engine core (`src/engine`, chess.js wrapper) — spec: `docs/superpowers/specs/2026-07-16-engine-core-chess-js-design.md`, plan: `docs/superpowers/plans/2026-07-16-engine-core.md`. **DONE.**
+
 The full Nocturne prototype (markup/copy source of truth) is vendored read-only at `docs/design-reference/gambit-local/`.
 
 ## What's next (not yet built)
 
 - **Appearance feature** (deferred from Phase 3): the `◧` topbar button, the appearance sheet, and the board-palette / piece-style pickers. `appState.boardStyle`/`pieceStyle` and their setters already exist and are read by `Board`, but there is no UI to change them yet. Needs its own brainstorm → spec → plan cycle.
-- **Real chess engine** (`chess.js` wrapper in `src/engine`): move legality, check/checkmate/draw detection, and wiring the currently-static `ui/game` and `ui/history` screens to real game state instead of hardcoded demo data. This is the big remaining piece — everything built so far (connection, onboarding, game/history UI) is presentational or infrastructure, not real gameplay.
+- **Real gameplay** (`chess.js`), decomposed into sub-projects, of which **A is done**:
+  - **A — engine core** (`src/engine`): pure chess.js wrapper — `newGame`/`move`/`legalMoves`, full check/checkmate/stalemate/draw taxonomy, engine-owned board matrix and types. **DONE** (this is rules/state only; no UI, no LLM).
+  - **B — interactive human play**: wire `ui/game` to the engine (click select→move, legal-move highlighting, real move list, game-over). Not built.
+  - **C — LLM opponent**: chat-completion call in `src/llm` + a move-selection layer that validates the model's move against the engine's legal set and retries. Not built.
+  - **D — real history + persistence**: finished game → History entry (replacing demo data), real hints, clocks. Not built.
+  - `ui/game` and `ui/history` remain **presentational, on demo data** until B/C/D wire them to the engine.
 - Each of the above gets its own spec → plan → implementation cycle, per the Superpowers methodology below.
