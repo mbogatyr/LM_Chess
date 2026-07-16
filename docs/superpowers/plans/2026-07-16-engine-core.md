@@ -25,6 +25,7 @@
 ### Task 1: Dependency, types, `newGame` + snapshot
 
 **Files:**
+
 - Modify: `package.json` / `package-lock.json` (via `npm install chess.js`)
 - Delete: `src/engine/.gitkeep`
 - Create: `src/engine/types.ts`
@@ -32,6 +33,7 @@
 - Test: `src/engine/game.test.ts`
 
 **Interfaces:**
+
 - Consumes: `chess.js` (`Chess` class).
 - Produces (relied on by all later tasks):
   - Types `Color`, `PieceType`, `Square`, `SquareName`, `PromotionPiece`, `MoveInput`, `LegalMove`, `GameResult`, `DrawReason`, `GameStatus`, `GameState` (exact shapes below).
@@ -71,8 +73,7 @@ export type SquareName = string
 // A move to apply: either coordinates (what the board produces from clicks) or
 // a SAN string (what the LLM emits), e.g. 'Nf3', 'e4', 'O-O', 'exd8=Q'.
 export type MoveInput =
-  | { from: SquareName; to: SquareName; promotion?: PromotionPiece }
-  | string
+  { from: SquareName; to: SquareName; promotion?: PromotionPiece } | string
 
 export type LegalMove = {
   from: SquareName
@@ -84,11 +85,7 @@ export type LegalMove = {
 export type GameResult = 'white' | 'black' | 'draw' | 'ongoing'
 
 export type DrawReason =
-  | 'stalemate'
-  | 'fifty-move'
-  | 'threefold'
-  | 'insufficient-material'
-  | null
+  'stalemate' | 'fifty-move' | 'threefold' | 'insufficient-material' | null
 
 export type GameStatus = {
   isCheck: boolean
@@ -184,9 +181,11 @@ function hydrate(state: GameState): Chess {
 }
 
 function mapBoard(chess: Chess): Square[][] {
-  return chess.board().map((row) =>
-    row.map((cell) => (cell ? { color: cell.color, type: cell.type } : null)),
-  )
+  return chess
+    .board()
+    .map((row) =>
+      row.map((cell) => (cell ? { color: cell.color, type: cell.type } : null)),
+    )
 }
 
 function computeStatus(chess: Chess): GameStatus {
@@ -207,7 +206,8 @@ function computeStatus(chess: Chess): GameStatus {
   if (isDraw) {
     if (isStalemate) drawReason = 'stalemate'
     else if (chess.isThreefoldRepetition()) drawReason = 'threefold'
-    else if (chess.isInsufficientMaterial()) drawReason = 'insufficient-material'
+    else if (chess.isInsufficientMaterial())
+      drawReason = 'insufficient-material'
     else drawReason = 'fifty-move'
   }
 
@@ -232,9 +232,7 @@ function snapshot(chess: Chess, initialFen: string): GameState {
     turn: chess.turn() as Color,
     board: mapBoard(chess),
     history: chess.history(),
-    lastMove: last
-      ? { from: last.from, to: last.to, san: last.san }
-      : null,
+    lastMove: last ? { from: last.from, to: last.to, san: last.san } : null,
     status: computeStatus(chess),
   }
 }
@@ -263,10 +261,12 @@ git commit -m "feat(engine): chess.js wrapper foundation — types, newGame, sna
 ### Task 2: `legalMoves`
 
 **Files:**
+
 - Modify: `src/engine/game.ts`
 - Test: `src/engine/game.test.ts`
 
 **Interfaces:**
+
 - Consumes: `hydrate`, `newGame`, `GameState`, `LegalMove` from Task 1.
 - Produces: `legalMoves(state: GameState, from?: SquareName): LegalMove[]` — with no `from`, every legal move; with `from`, only moves originating on that square. Empty array when the game is over or the square has no legal moves.
 
@@ -312,10 +312,7 @@ Expected: FAIL — `legalMoves` is not exported.
 Add to `src/engine/game.ts` (import `LegalMove` and `SquareName` in the existing `import type` block):
 
 ```ts
-export function legalMoves(
-  state: GameState,
-  from?: SquareName,
-): LegalMove[] {
+export function legalMoves(state: GameState, from?: SquareName): LegalMove[] {
   const chess = hydrate(state)
   const moves = from
     ? chess.moves({ square: from as never, verbose: true })
@@ -349,10 +346,12 @@ git commit -m "feat(engine): legalMoves (all moves or per-square)"
 ### Task 3: `move` (coordinates + SAN, rejection, immutability, promotion)
 
 **Files:**
+
 - Modify: `src/engine/game.ts`
 - Test: `src/engine/game.test.ts`
 
 **Interfaces:**
+
 - Consumes: `hydrate`, `snapshot`, `newGame`, `GameState`, `MoveInput` from Task 1.
 - Produces: `move(state: GameState, m: MoveInput): GameState | null` — a new `GameState` with the move applied, or `null` if the move is illegal/unparseable. Never throws on a rejected move, never mutates `state`. Played SAN is at `result.lastMove.san` and appended to `result.history`.
 
@@ -454,10 +453,12 @@ git commit -m "feat(engine): move — coord + SAN, null on rejection, immutable"
 ### Task 4: Game-over taxonomy (checkmate, stalemate, insufficient material, fifty-move, threefold)
 
 **Files:**
+
 - Modify: `src/engine/game.ts` only if a test reveals a `computeStatus` bug (implementation was written in Task 1).
 - Test: `src/engine/game.test.ts`
 
 **Interfaces:**
+
 - Consumes: `newGame`, `move` from Tasks 1 & 3; `GameState.status` (`GameStatus`).
 - Produces: no new exports — this task locks down the `status` mapping, and specifically validates the history-replay hydration via the threefold case.
 
@@ -505,7 +506,16 @@ describe('game-over detection', () => {
   test('threefold repetition is detected across replayed history', () => {
     // Shuffle knights back to the start position twice.
     let s = newGame()
-    for (const san of ['Nf3', 'Nf6', 'Ng1', 'Ng8', 'Nf3', 'Nf6', 'Ng1', 'Ng8']) {
+    for (const san of [
+      'Nf3',
+      'Nf6',
+      'Ng1',
+      'Ng8',
+      'Nf3',
+      'Nf6',
+      'Ng1',
+      'Ng8',
+    ]) {
       s = move(s, san)!
     }
     expect(s.status.isDraw).toBe(true)
@@ -532,10 +542,12 @@ git commit -m "test(engine): game-over taxonomy incl. threefold via history repl
 ### Task 5: Migrate `Color` / `PieceType` / `Square` to be engine-canonical
 
 **Files:**
+
 - Modify: `src/ui/game/pieceSvgs.ts:1-2`
 - Modify: `src/ui/game/chessDemo.ts:1-3`
 
 **Interfaces:**
+
 - Consumes: `Color`, `PieceType`, `Square` from `src/engine/types` (Task 1).
 - Produces: no new runtime behaviour. This is an **import-only refactor** — `src/engine/types` becomes the single definition; `ui/game` re-exports for existing importers. Its "test" is the existing suite staying green.
 
@@ -608,6 +620,7 @@ git commit -m "refactor(engine): make Color/PieceType/Square engine-canonical"
 ### Task 6: Full quality gate + docs
 
 **Files:**
+
 - Modify: `CLAUDE.md` (engine no longer a placeholder)
 
 **Interfaces:** none.

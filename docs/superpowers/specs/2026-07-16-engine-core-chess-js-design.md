@@ -86,8 +86,7 @@ type SquareName = string // 'e4'
 type PromotionPiece = 'q' | 'r' | 'b' | 'n'
 
 type MoveInput =
-  | { from: SquareName; to: SquareName; promotion?: PromotionPiece }
-  | string // SAN, e.g. 'Nf3', 'e4', 'O-O', 'exd8=Q'
+  { from: SquareName; to: SquareName; promotion?: PromotionPiece } | string // SAN, e.g. 'Nf3', 'e4', 'O-O', 'exd8=Q'
 
 type LegalMove = {
   from: SquareName
@@ -98,11 +97,7 @@ type LegalMove = {
 
 type GameResult = 'white' | 'black' | 'draw' | 'ongoing'
 type DrawReason =
-  | 'stalemate'
-  | 'fifty-move'
-  | 'threefold'
-  | 'insufficient-material'
-  | null
+  'stalemate' | 'fifty-move' | 'threefold' | 'insufficient-material' | null
 
 type GameStatus = {
   isCheck: boolean
