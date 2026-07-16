@@ -54,16 +54,22 @@ npm run lint && npm run format:check && npm run typecheck && npm test && npm run
 
 ```
 src/
-  engine/   # chess.js wrapper (rules/state) — planned, currently placeholder
-  llm/      # LM Studio HTTP client — planned, currently placeholder
-  ui/       # React components — planned, currently placeholder
-  App.tsx   # TEMPORARY stub (<h1>LM Chess</h1>) — replace when real UI lands
+  engine/   # chess.js wrapper (rules/state) — NOT YET BUILT, still a .gitkeep placeholder
+  llm/      # LM Studio HTTP client — DONE: client.ts, types.ts, url.ts (+ tests)
+  ui/
+    app/        # i18n (RU/EN), app-state screen router, demo data (ELO_BANDS, HISTORY, historyStats)
+    shell/      # window chrome + Topbar (brand, Game/History tabs, connection pill, RU/EN toggle)
+    onboarding/ # wizard: Connect → Models → ELO (Connect/Models wired to useConnection; ELO is presentational)
+    game/       # static presentational game screen on demo data (Board, Piece, PlayerStrip, MoveList, HintConsole)
+    history/    # static presentational History screen on demo data (stat tiles + match table)
+    useConnection.ts  # LM Studio connection hook (wraps src/llm)
+  App.tsx   # real app entry — routes screen state to the shell + screens above
   main.tsx
   App.test.tsx
   test/setup.ts   # registers jest-dom matchers
 ```
 
-`engine/`, `llm/`, `ui/` currently hold only `.gitkeep`; they mark the intended module boundaries. Keep these three responsibilities separate as the app grows: **rules/state**, **LLM I/O**, and **presentation** must not bleed into each other.
+`engine/` is still a placeholder — no chess.js, no real gameplay yet. `llm/` and `ui/` are real and built. Keep these three responsibilities separate as the app grows: **rules/state** (`engine/`), **LLM I/O** (`llm/`), and **presentation** (`ui/`) must not bleed into each other. Everything currently in `ui/game/` and `ui/history/` is **presentational only, on hardcoded demo data** — there is no real chess logic or real match history behind it yet; that's what `engine/` will supply.
 
 ## Development standards
 
@@ -117,7 +123,16 @@ Other standing rules:
 ### Existing design docs
 
 - Environment/test/CI foundation — spec: `docs/superpowers/specs/2026-07-11-environment-setup-design.md`, plan: `docs/superpowers/plans/2026-07-11-environment-setup.md`.
+- LM Studio connection engine (`src/llm`, `useConnection`) — spec: `docs/superpowers/specs/2026-07-11-lm-studio-connection-design.md`, plan: `docs/superpowers/plans/2026-07-11-lm-studio-connection.md`.
+- Nocturne design-system port ("Gambit Local" prototype → NeuroChess UI), overall spec: `docs/superpowers/specs/2026-07-11-nocturne-design-port-design.md`. Phased:
+  - Phase 1 (shell + wired onboarding) — plan: `docs/superpowers/plans/2026-07-11-nocturne-port-phase-1.md`.
+  - Phase 2 (static game screen) — spec: `docs/superpowers/specs/2026-07-13-nocturne-port-phase-2-game-screen-design.md`, plan: `docs/superpowers/plans/2026-07-13-nocturne-port-phase-2.md`.
+  - Phase 3 (History screen + topbar tabs) — spec: `docs/superpowers/specs/2026-07-13-nocturne-port-phase-3-history-design.md`, plan: `docs/superpowers/plans/2026-07-13-nocturne-port-phase-3.md`.
+
+The full Nocturne prototype (markup/copy source of truth) is vendored read-only at `docs/design-reference/gambit-local/`.
 
 ## What's next (not yet built)
 
-The current codebase is **only the environment/test/CI foundation** — there is no chess logic yet. The next spec covers the chess engine (`chess.js` wrapper in `src/engine`), the board UI (`src/ui`), and the LM Studio HTTP client (`src/llm`). Each gets its own spec → plan → implementation cycle.
+- **Appearance feature** (deferred from Phase 3): the `◧` topbar button, the appearance sheet, and the board-palette / piece-style pickers. `appState.boardStyle`/`pieceStyle` and their setters already exist and are read by `Board`, but there is no UI to change them yet. Needs its own brainstorm → spec → plan cycle.
+- **Real chess engine** (`chess.js` wrapper in `src/engine`): move legality, check/checkmate/draw detection, and wiring the currently-static `ui/game` and `ui/history` screens to real game state instead of hardcoded demo data. This is the big remaining piece — everything built so far (connection, onboarding, game/history UI) is presentational or infrastructure, not real gameplay.
+- Each of the above gets its own spec → plan → implementation cycle, per the Superpowers methodology below.

@@ -28,6 +28,12 @@ npm run dev
 
 ## Status
 
-This repository currently contains the environment and test-infrastructure
-foundation only. Chess logic and LM Studio integration are not implemented
-yet.
+The LM Studio connection (real HTTP client + connection hook) and the full
+**NeuroChess / Nocturne** UI shell are implemented: onboarding wizard (connect
+to a local LM Studio server, list and load models, pick an ELO level), a game
+screen, and a history screen. The game and history screens are currently
+**presentational, running on hardcoded demo data** — there is no real chess
+engine yet, so moves, the board position, and match history don't reflect
+actual play. Real chess rules (`chess.js`) and the appearance picker (board
+palette / piece style) are not implemented yet. See `CLAUDE.md` for the full
+picture and what's next.
