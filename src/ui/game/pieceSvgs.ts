@@ -1,5 +1,5 @@
-export type Color = 'w' | 'b'
-export type PieceType = 'p' | 'r' | 'n' | 'b' | 'q' | 'k'
+import type { Color, PieceType } from '../../engine/types'
+export type { Color, PieceType }
 export type PieceSvg = { vb: string; inner: string }
 
 // Ported verbatim from docs/design-reference/gambit-local/app/board.js (PIECE_SVGS).
