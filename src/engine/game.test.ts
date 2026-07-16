@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { newGame } from './game'
+import { legalMoves, newGame } from './game'
 
 describe('newGame', () => {
   test('starts a fresh game in the standard position', () => {
@@ -33,5 +33,29 @@ describe('newGame', () => {
     expect(state.initialFen).toBe(fen)
     expect(state.fen).toBe(fen)
     expect(state.turn).toBe('w')
+  })
+})
+
+describe('legalMoves', () => {
+  test('lists all 20 legal moves in the start position', () => {
+    expect(legalMoves(newGame())).toHaveLength(20)
+  })
+
+  test('lists moves from a single square', () => {
+    const dests = legalMoves(newGame(), 'e2')
+      .map((m) => m.to)
+      .sort()
+    expect(dests).toEqual(['e3', 'e4'])
+  })
+
+  test('returns an empty array for a square with no legal moves', () => {
+    expect(legalMoves(newGame(), 'e4')).toEqual([])
+  })
+
+  test('returns an empty array when the game is over', () => {
+    // A finished game (stalemate: black king a8, white king c7, queen b6,
+    // black to move has no legal move). Game over ⇒ no legal moves.
+    const fen = 'k7/2K5/1Q6/8/8/8/8/8 b - - 0 1'
+    expect(legalMoves(newGame(fen))).toEqual([])
   })
 })

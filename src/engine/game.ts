@@ -5,7 +5,10 @@ import type {
   GameResult,
   GameState,
   GameStatus,
+  LegalMove,
+  PromotionPiece,
   Square,
+  SquareName,
 } from './types'
 
 // Rebuild a mutable Chess from an immutable snapshot by replaying the SAN
@@ -78,4 +81,23 @@ function snapshot(chess: Chess, initialFen: string): GameState {
 export function newGame(fen?: string): GameState {
   const chess = fen ? new Chess(fen) : new Chess()
   return snapshot(chess, fen ?? chess.fen())
+}
+
+export function legalMoves(state: GameState, from?: SquareName): LegalMove[] {
+  const chess = hydrate(state)
+  // chess.moves({ square }) types the square as chess.js's own branded
+  // `Square` union; `as never` bridges our SquareName (string) to it without
+  // leaking the chess.js type into our public API. An out-of-range square
+  // yields [].
+  const moves = from
+    ? chess.moves({ square: from as never, verbose: true })
+    : chess.moves({ verbose: true })
+  return moves.map((m) => ({
+    from: m.from,
+    to: m.to,
+    san: m.san,
+    // chess.js types `promotion` as its full `PieceSymbol` (incl. 'p'/'k'),
+    // but a promotion move can only ever report one of q/r/b/n at runtime.
+    ...(m.promotion ? { promotion: m.promotion as PromotionPiece } : {}),
+  }))
 }
