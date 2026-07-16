@@ -58,6 +58,14 @@ describe('legalMoves', () => {
     const fen = 'k7/2K5/1Q6/8/8/8/8/8 b - - 0 1'
     expect(legalMoves(newGame(fen))).toEqual([])
   })
+
+  test('a pawn on the 7th rank yields all four promotion moves', () => {
+    const fen = '8/4P3/8/8/8/8/8/4k1K1 w - - 0 1'
+    const promotions = legalMoves(newGame(fen), 'e7')
+      .map((m) => m.promotion)
+      .sort()
+    expect(promotions).toEqual(['b', 'n', 'q', 'r'])
+  })
 })
 
 describe('move', () => {
@@ -160,5 +168,14 @@ describe('game-over detection', () => {
     }
     expect(s.status.isDraw).toBe(true)
     expect(s.status.drawReason).toBe('threefold')
+  })
+
+  test('check with legal escapes is not checkmate or game over', () => {
+    // Black king e8 in check from the white rook on e2, down the open
+    // e-file; black can step aside to d8/f8/d7/f7.
+    const s = newGame('4k3/8/8/8/8/8/4R3/4K3 b - - 0 1')
+    expect(s.status.isCheck).toBe(true)
+    expect(s.status.isCheckmate).toBe(false)
+    expect(s.status.isGameOver).toBe(false)
   })
 })

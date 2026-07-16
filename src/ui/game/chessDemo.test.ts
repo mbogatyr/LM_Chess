@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
 import { START_POSITION, sqName, nameToRC, HINT, HINT_LEGAL } from './chessDemo'
+import { newGame } from '../../engine/game'
 
 test('sqName maps array indices to algebraic squares', () => {
   expect(sqName(0, 0)).toBe('a8')
@@ -28,4 +29,8 @@ test('HINT points at the 1.e4 demo and exposes RU/EN text', () => {
   expect(HINT_LEGAL).toEqual(['e3', 'e4'])
   expect(HINT.ru.l3[0]).toBe('e2 → e4')
   expect(HINT.en.l1[0]).toBe('Move a centre pawn')
+})
+
+test('engine start board equals the demo START_POSITION', () => {
+  expect(newGame().board).toEqual(START_POSITION)
 })

@@ -1,6 +1,5 @@
 import { Chess } from 'chess.js'
 import type {
-  Color,
   DrawReason,
   GameResult,
   GameState,
@@ -71,7 +70,7 @@ function snapshot(chess: Chess, initialFen: string): GameState {
   return {
     initialFen,
     fen: chess.fen(),
-    turn: chess.turn() as Color,
+    turn: chess.turn(),
     board: mapBoard(chess),
     history: chess.history(),
     lastMove: last ? { from: last.from, to: last.to, san: last.san } : null,
@@ -106,7 +105,9 @@ export function legalMoves(state: GameState, from?: SquareName): LegalMove[] {
 export function move(state: GameState, m: MoveInput): GameState | null {
   const chess = hydrate(state)
   try {
-    // chess.js v1.x throws on an illegal/unparseable move.
+    // `as never` bridges our MoveInput union (object | SAN string) to chess.js's
+    // overloaded move() signature without importing its move types into our API.
+    // chess.js v1.x throws on an illegal/unparseable move (caught below).
     const applied = chess.move(m as never)
     if (!applied) return null
   } catch {
