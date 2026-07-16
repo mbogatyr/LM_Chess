@@ -106,3 +106,59 @@ describe('move', () => {
     expect(bySan!.board[0][4]).toEqual({ color: 'w', type: 'q' })
   })
 })
+
+describe('game-over detection', () => {
+  test('checkmate reports the mating side as the result', () => {
+    // Fool's Mate: 1. f3 e5 2. g4 Qh4#
+    let s = newGame()
+    s = move(s, 'f3')!
+    s = move(s, 'e5')!
+    s = move(s, 'g4')!
+    s = move(s, 'Qh4#')!
+    expect(s.status.isCheckmate).toBe(true)
+    expect(s.status.isGameOver).toBe(true)
+    expect(s.status.result).toBe('black')
+    expect(s.status.drawReason).toBeNull()
+  })
+
+  test('stalemate is a draw with reason stalemate', () => {
+    // Classic stalemate: black king a8, white king c7, white queen b6, black to move.
+    const s = newGame('k7/2K5/1Q6/8/8/8/8/8 b - - 0 1')
+    expect(s.status.isStalemate).toBe(true)
+    expect(s.status.isDraw).toBe(true)
+    expect(s.status.result).toBe('draw')
+    expect(s.status.drawReason).toBe('stalemate')
+  })
+
+  test('king vs king is an insufficient-material draw', () => {
+    const s = newGame('4k3/8/8/8/8/8/8/4K3 w - - 0 1')
+    expect(s.status.isDraw).toBe(true)
+    expect(s.status.drawReason).toBe('insufficient-material')
+  })
+
+  test('fifty-move rule is a draw with reason fifty-move', () => {
+    // Halfmove clock at 99; a non-pawn, non-capture move trips it to 100.
+    const s = move(newGame('4k3/8/8/8/8/8/8/R3K3 w - - 99 80'), 'Ra2')!
+    expect(s.status.isDraw).toBe(true)
+    expect(s.status.drawReason).toBe('fifty-move')
+  })
+
+  test('threefold repetition is detected across replayed history', () => {
+    // Shuffle knights back to the start position twice.
+    let s = newGame()
+    for (const san of [
+      'Nf3',
+      'Nf6',
+      'Ng1',
+      'Ng8',
+      'Nf3',
+      'Nf6',
+      'Ng1',
+      'Ng8',
+    ]) {
+      s = move(s, san)!
+    }
+    expect(s.status.isDraw).toBe(true)
+    expect(s.status.drawReason).toBe('threefold')
+  })
+})
