@@ -1,6 +1,6 @@
-import type { Color, PieceType } from './pieceSvgs'
+import type { PieceType, Square } from '../../engine/types'
 
-export type Square = { color: Color; type: PieceType } | null
+export type { Square } from '../../engine/types'
 
 export type HintLevel = 0 | 1 | 2 | 3
 
