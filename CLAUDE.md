@@ -54,7 +54,7 @@ npm run lint && npm run format:check && npm run typecheck && npm test && npm run
 
 ```
 src/
-  engine/   # chess.js wrapper (rules/state) — NOT YET BUILT, still a .gitkeep placeholder
+  engine/   # chess.js wrapper (rules/state) — DONE: types.ts, game.ts (newGame/move/legalMoves) (+ tests)
   llm/      # LM Studio HTTP client — DONE: client.ts, types.ts, url.ts (+ tests)
   ui/
     app/        # i18n (RU/EN), app-state screen router, demo data (ELO_BANDS, HISTORY, historyStats)
@@ -69,7 +69,7 @@ src/
   test/setup.ts   # registers jest-dom matchers
 ```
 
-`engine/` is still a placeholder — no chess.js, no real gameplay yet. `llm/` and `ui/` are real and built. Keep these three responsibilities separate as the app grows: **rules/state** (`engine/`), **LLM I/O** (`llm/`), and **presentation** (`ui/`) must not bleed into each other. Everything currently in `ui/game/` and `ui/history/` is **presentational only, on hardcoded demo data** — there is no real chess logic or real match history behind it yet; that's what `engine/` will supply.
+`engine/` now has a real core: a pure `chess.js` wrapper (`newGame`/`move`/`legalMoves`, full game-status taxonomy) with its own test suite — no React, no UI wiring. `llm/` and `ui/` are real and built too. Keep these three responsibilities separate as the app grows: **rules/state** (`engine/`), **LLM I/O** (`llm/`), and **presentation** (`ui/`) must not bleed into each other. Everything currently in `ui/game/` and `ui/history/` is still **presentational only, on hardcoded demo data** — wiring them up to the new `engine/` core (and dropping the demo data) is the next work, tracked as sub-projects B/C/D.
 
 ## Development standards
 
