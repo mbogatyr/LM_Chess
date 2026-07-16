@@ -6,6 +6,7 @@ import type {
   GameState,
   GameStatus,
   LegalMove,
+  MoveInput,
   PromotionPiece,
   Square,
   SquareName,
@@ -100,4 +101,16 @@ export function legalMoves(state: GameState, from?: SquareName): LegalMove[] {
     // but a promotion move can only ever report one of q/r/b/n at runtime.
     ...(m.promotion ? { promotion: m.promotion as PromotionPiece } : {}),
   }))
+}
+
+export function move(state: GameState, m: MoveInput): GameState | null {
+  const chess = hydrate(state)
+  try {
+    // chess.js v1.x throws on an illegal/unparseable move.
+    const applied = chess.move(m as never)
+    if (!applied) return null
+  } catch {
+    return null
+  }
+  return snapshot(chess, state.initialFen)
 }

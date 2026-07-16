@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { legalMoves, newGame } from './game'
+import { legalMoves, move, newGame } from './game'
 
 describe('newGame', () => {
   test('starts a fresh game in the standard position', () => {
@@ -57,5 +57,52 @@ describe('legalMoves', () => {
     // black to move has no legal move). Game over ⇒ no legal moves.
     const fen = 'k7/2K5/1Q6/8/8/8/8/8 b - - 0 1'
     expect(legalMoves(newGame(fen))).toEqual([])
+  })
+})
+
+describe('move', () => {
+  test('applies a coordinate move and records SAN + history', () => {
+    const next = move(newGame(), { from: 'e2', to: 'e4' })
+    expect(next).not.toBeNull()
+    expect(next!.turn).toBe('b')
+    expect(next!.history).toEqual(['e4'])
+    expect(next!.lastMove).toEqual({ from: 'e2', to: 'e4', san: 'e4' })
+  })
+
+  test('applies a SAN move equivalently to the coordinate form', () => {
+    const byCoord = move(newGame(), { from: 'e2', to: 'e4' })
+    const bySan = move(newGame(), 'e4')
+    expect(bySan).not.toBeNull()
+    expect(bySan!.fen).toBe(byCoord!.fen)
+    expect(bySan!.history).toEqual(['e4'])
+  })
+
+  test('returns null for an illegal coordinate move', () => {
+    expect(move(newGame(), { from: 'e2', to: 'e5' })).toBeNull()
+  })
+
+  test('returns null for an unparseable SAN string', () => {
+    expect(move(newGame(), 'Zz9')).toBeNull()
+  })
+
+  test('does not mutate the input state', () => {
+    const state = newGame()
+    const fenBefore = state.fen
+    const historyLenBefore = state.history.length
+    const next = move(state, 'e4')
+    expect(state.fen).toBe(fenBefore)
+    expect(state.history).toHaveLength(historyLenBefore)
+    expect(next).not.toBe(state)
+  })
+
+  test('handles promotion in both coordinate and SAN form', () => {
+    const fen = '8/4P3/8/8/8/8/8/4k1K1 w - - 0 1'
+    const byCoord = move(newGame(fen), { from: 'e7', to: 'e8', promotion: 'q' })
+    expect(byCoord).not.toBeNull()
+    expect(byCoord!.board[0][4]).toEqual({ color: 'w', type: 'q' })
+
+    const bySan = move(newGame(fen), 'e8=Q')
+    expect(bySan).not.toBeNull()
+    expect(bySan!.board[0][4]).toEqual({ color: 'w', type: 'q' })
   })
 })
