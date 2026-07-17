@@ -25,6 +25,19 @@ test('buildRequest appends the correction when retrying', () => {
   )
   if (req.kind !== 'chat') throw new Error('expected chat')
   expect(req.messages[1].content).toContain('Qzz9')
+  expect(req.messages[1].content).toContain('illegal')
+})
+
+test('buildRequest derives the side to move from ctx.state.turn (White)', () => {
+  const state = newGame()
+  expect(state.turn).toBe('w')
+  const req = genericFenAdapter.buildRequest(
+    ctx({ state, legal: legalMoves(state) }),
+  )
+  if (req.kind !== 'chat') throw new Error('expected chat')
+  expect(req.messages[0].content).toContain('White')
+  expect(req.messages[0].content).not.toContain('Black')
+  expect(req.messages[1].content).toContain("White's turn")
 })
 
 test('parseSanCandidates returns a bare move', () => {
@@ -37,6 +50,15 @@ test('parseSanCandidates extracts a move from prose', () => {
 
 test('parseSanCandidates handles a leading line of reasoning', () => {
   expect(parseSanCandidates('Let me think...\ne5')).toContain('e5')
+})
+
+test('parseSanCandidates prefers the last-stated move over an earlier one', () => {
+  const candidates = parseSanCandidates(
+    "I considered Nf3 but I'll actually play e5",
+  )
+  expect(candidates).toContain('e5')
+  expect(candidates).toContain('Nf3')
+  expect(candidates.indexOf('e5')).toBeLessThan(candidates.indexOf('Nf3'))
 })
 
 test('parseMoves feeds candidates the engine can validate', () => {
