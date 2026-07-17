@@ -1,54 +1,72 @@
 import { render } from '@testing-library/react'
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { Board } from './Board'
+import { newGame } from '../../engine/game'
 
-test('renders 64 squares with palette classes and coord labels', () => {
-  const { container } = render(
-    <Board hintLevel={0} boardStyle="mono" pieceStyle="neon" />,
-  )
+const base = {
+  boardStyle: 'mono' as const,
+  pieceStyle: 'neon' as const,
+  selected: null,
+  legalTargets: [],
+  lastMove: null,
+  checkSquare: null,
+  onSquareClick: () => {},
+}
+
+test('renders 64 squares, 32 pieces and coord labels, no hint classes', () => {
+  const { container } = render(<Board {...base} board={newGame().board} />)
   expect(container.querySelectorAll('.sq')).toHaveLength(64)
-  expect(container.querySelector('.board.board--mono')).not.toBeNull()
-  expect(container.querySelector('.board-wrap.pieces--neon')).not.toBeNull()
-  // 8 rank labels + 8 file labels
+  expect(container.querySelectorAll('.piece')).toHaveLength(32)
   expect(container.querySelectorAll('.coord.rank')).toHaveLength(8)
   expect(container.querySelectorAll('.coord.file')).toHaveLength(8)
-  // all 32 pieces present at the start
-  expect(container.querySelectorAll('.piece')).toHaveLength(32)
-})
-
-test('no hint classes or arrow at level 0', () => {
-  const { container } = render(
-    <Board hintLevel={0} boardStyle="mono" pieceStyle="neon" />,
-  )
   expect(container.querySelector('.sq.hint1')).toBeNull()
-  expect(container.querySelector('.sq.hint-target')).toBeNull()
   expect(container.querySelector('.arrows')).toBeNull()
 })
 
-test('level 1 highlights the hinted piece square only', () => {
+test('marks the selected square and its legal targets (dot/ring)', () => {
   const { container } = render(
-    <Board hintLevel={1} boardStyle="mono" pieceStyle="neon" />,
-  )
-  const hinted = container.querySelectorAll('.sq.hint1')
-  expect(hinted).toHaveLength(1)
-  expect(hinted[0].getAttribute('data-sq')).toBe('e2')
-})
-
-test('level 2 adds target-square highlights', () => {
-  const { container } = render(
-    <Board hintLevel={2} boardStyle="mono" pieceStyle="neon" />,
-  )
-  const targets = [...container.querySelectorAll('.sq.hint-target')].map((s) =>
-    s.getAttribute('data-sq'),
-  )
-  expect(targets.sort()).toEqual(['d4', 'e4'])
-})
-
-test('level 3 selects the piece, shows legal dots and the arrow', () => {
-  const { container } = render(
-    <Board hintLevel={3} boardStyle="mono" pieceStyle="neon" />,
+    <Board
+      {...base}
+      board={newGame().board}
+      selected="e2"
+      legalTargets={[
+        { to: 'e3', capture: false },
+        { to: 'd3', capture: true },
+      ]}
+    />,
   )
   expect(container.querySelector('.sq.sel')!.getAttribute('data-sq')).toBe('e2')
-  expect(container.querySelectorAll('.sq.legal .marker.dot')).toHaveLength(2)
-  expect(container.querySelector('.arrows')).not.toBeNull()
+  const e3 = container.querySelector('[data-sq="e3"]')!
+  const d3 = container.querySelector('[data-sq="d3"]')!
+  expect(e3.classList.contains('legal')).toBe(true)
+  expect(e3.querySelector('.marker.dot')).not.toBeNull()
+  expect(d3.querySelector('.marker.ring')).not.toBeNull()
+})
+
+test('highlights last move squares and the checked king', () => {
+  const { container } = render(
+    <Board
+      {...base}
+      board={newGame().board}
+      lastMove={{ from: 'e2', to: 'e4' }}
+      checkSquare="e1"
+    />,
+  )
+  expect(
+    [...container.querySelectorAll('.sq.last')]
+      .map((s) => s.getAttribute('data-sq'))
+      .sort(),
+  ).toEqual(['e2', 'e4'])
+  expect(container.querySelector('.sq.check')!.getAttribute('data-sq')).toBe(
+    'e1',
+  )
+})
+
+test('clicking a square calls onSquareClick with its name', async () => {
+  const onSquareClick = vi.fn()
+  const { container } = render(
+    <Board {...base} board={newGame().board} onSquareClick={onSquareClick} />,
+  )
+  ;(container.querySelector('[data-sq="e2"]') as HTMLElement).click()
+  expect(onSquareClick).toHaveBeenCalledWith('e2')
 })

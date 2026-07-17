@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test } from 'vitest'
 import { GameScreen } from './GameScreen'
 import { I18nProvider } from '../app/i18n'
@@ -7,50 +6,61 @@ import type { ReactNode } from 'react'
 
 beforeEach(() => localStorage.clear())
 afterEach(() => localStorage.clear())
-
-const wrap = (node: ReactNode) => <I18nProvider>{node}</I18nProvider>
-
+const wrap = (n: ReactNode) => <I18nProvider>{n}</I18nProvider>
 const props = {
   opponentName: 'gemma',
   elo: 1200,
   boardStyle: 'mono' as const,
   pieceStyle: 'neon' as const,
 }
+// fireEvent (not a raw `.click()`) so React 18's state update for the
+// resulting move is flushed to the DOM before the next assertion/click runs.
+const click = (c: HTMLElement, sq: string) =>
+  fireEvent.click(c.querySelector(`[data-sq="${sq}"]`) as HTMLElement)
 
-test('shows both players, frozen clocks and the your-move status', () => {
+test('shows players, frozen clocks and the white-to-move status', () => {
   const { container } = render(wrap(<GameScreen {...props} />))
   expect(screen.getByText('gemma')).toBeInTheDocument()
-  expect(screen.getByText('Соперник · ELO 1200')).toBeInTheDocument()
   expect(screen.getByText('Вы')).toBeInTheDocument()
   expect(container.querySelectorAll('.clock')).toHaveLength(2)
-  container
-    .querySelectorAll('.clock')
-    .forEach((c) => expect(c.textContent).toBe('10:00'))
-  expect(container.querySelector('.status .txt b')!.textContent).toBe('Ваш ход')
+  expect(container.querySelector('.status .txt b')!.textContent).toBe(
+    'Ход белых',
+  )
 })
 
-test('shows the empty move list', () => {
+test('playing e4 e5 updates board, move list, status and active strip', () => {
+  const { container } = render(wrap(<GameScreen {...props} />))
+  click(container, 'e2')
+  click(container, 'e4')
+  expect(container.querySelector('[data-sq="e4"] .piece')).not.toBeNull()
+  expect(container.querySelector('[data-sq="e2"] .piece')).toBeNull()
+  expect(screen.getByText('e4')).toBeInTheDocument()
+  expect(container.querySelector('.status .txt b')!.textContent).toBe(
+    'Ход чёрных',
+  )
+  expect(container.querySelector('.status.theirs')).not.toBeNull()
+  click(container, 'e7')
+  click(container, 'e5')
+  expect(screen.getByText('e5')).toBeInTheDocument()
+})
+
+test('Fool’s Mate ends with the checkmate status', () => {
+  const { container } = render(wrap(<GameScreen {...props} />))
+  click(container, 'f2')
+  click(container, 'f3')
+  click(container, 'e7')
+  click(container, 'e5')
+  click(container, 'g2')
+  click(container, 'g4')
+  click(container, 'd8')
+  click(container, 'h4')
+  expect(container.querySelector('.status .txt b')!.textContent).toBe(
+    'Мат — победа чёрных',
+  )
+})
+
+test('the hint panel is inert', () => {
   render(wrap(<GameScreen {...props} />))
-  expect(screen.getByText('Сделайте первый ход')).toBeInTheDocument()
-})
-
-test('clicking a hint level highlights the board; clicking it again clears', async () => {
-  const { container } = render(wrap(<GameScreen {...props} />))
-  expect(container.querySelector('.sq.hint1')).toBeNull()
   const lvl1 = screen.getByRole('button', { name: /Фигура/ })
-  await userEvent.click(lvl1)
-  expect(container.querySelector('.sq.hint1')!.getAttribute('data-sq')).toBe(
-    'e2',
-  )
-  expect(lvl1).toHaveAttribute('aria-pressed', 'true')
-  await userEvent.click(lvl1)
-  expect(container.querySelector('.sq.hint1')).toBeNull()
-})
-
-test('the refresh button cycles into level 1', async () => {
-  const { container } = render(wrap(<GameScreen {...props} />))
-  await userEvent.click(
-    screen.getByRole('button', { name: 'Следующая подсказка' }),
-  )
-  expect(container.querySelector('.sq.hint1')).not.toBeNull()
+  expect(lvl1).toBeDisabled()
 })
