@@ -160,6 +160,11 @@ export function useGame(opts: UseGameOptions): UseGame {
           return
         } catch (err) {
           if (stale()) return
+          // Only connection failures (LMStudioError) get the retry/banner
+          // treatment. Anything else is a programmer error, not a network
+          // issue — clear `thinking` and rethrow to surface it loudly rather
+          // than masking a bug as a connection problem. (selectMove only ever
+          // rejects with LMStudioError, so this path is effectively unreached.)
           if (!(err instanceof LMStudioError)) {
             setThinking(false)
             throw err

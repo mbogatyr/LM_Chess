@@ -61,7 +61,7 @@ test('falls back to a random legal move after exhausting retries', async () => {
     rng: () => 0, // pick the first legal move deterministically
   })
   expect(out.source).toBe('fallback')
-  expect(chat).toHaveBeenCalledTimes(3) // MAX_MOVE_RETRIES
+  expect(chat).toHaveBeenCalledTimes(3) // MAX_MOVE_ATTEMPTS
   // the fallback move is genuinely legal (engine applied it)
   expect(out.nextState.history).toHaveLength(2)
 })

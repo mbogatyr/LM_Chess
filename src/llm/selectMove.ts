@@ -4,7 +4,9 @@ import type { ModelAdapter } from './adapters/types'
 import { legalMoves, move } from '../engine/game'
 import type { GameState } from '../engine/types'
 
-export const MAX_MOVE_RETRIES = 3
+// Total model calls before falling back: the first request plus up to two
+// correction re-requests. (Distinct from useGame's connection retryDelays.)
+export const MAX_MOVE_ATTEMPTS = 3
 const DEFAULT_TEMPERATURE = 0.7
 const DEFAULT_MAX_TOKENS = 64
 
@@ -39,9 +41,15 @@ export async function selectMove(
   const rng = deps.rng ?? Math.random
   const adapter = deps.adapter ?? resolveAdapter(model)
   const legal = legalMoves(state)
+  // Defensive: callers (useGame) only invoke this on a non-terminal Black
+  // turn, so there is always a legal move. Guard the seam anyway — an empty
+  // set would otherwise make the random fallback read `undefined.from`.
+  if (legal.length === 0) {
+    throw new Error('selectMove called on a position with no legal moves')
+  }
 
   let correction: { badReply: string; reason: string } | undefined
-  for (let attempt = 0; attempt < MAX_MOVE_RETRIES; attempt++) {
+  for (let attempt = 0; attempt < MAX_MOVE_ATTEMPTS; attempt++) {
     const ctx = { state, elo, legal, correction }
     const request = adapter.buildRequest(ctx)
     const temperature = adapter.sampling?.temperature ?? DEFAULT_TEMPERATURE
