@@ -8,10 +8,12 @@ export function HintConsole({
   level,
   onSelect,
   onRefresh,
+  disabled,
 }: {
   level: HintLevel
   onSelect: (lv: HintLevel) => void
   onRefresh: () => void
+  disabled?: boolean
 }) {
   const { t, lang } = useI18n()
   return (
@@ -22,6 +24,7 @@ export function HintConsole({
           type="button"
           className="btn btn-icon"
           onClick={onRefresh}
+          disabled={disabled}
           title={lang === 'ru' ? 'Следующая подсказка' : 'Next hint'}
         >
           <svg
@@ -44,13 +47,14 @@ export function HintConsole({
               className="hint-lv"
               aria-pressed={level === lv}
               onClick={() => onSelect(lv)}
+              disabled={disabled}
             >
               <b>{t(`hint${lv}_t`)}</b>
               <small>{t(`hint${lv}_s`)}</small>
             </button>
           ))}
         </div>
-        {level === 0 ? (
+        {level === 0 || disabled ? (
           <div className="hint-readout empty">{t('hint_empty')}</div>
         ) : (
           <div className="hint-readout">

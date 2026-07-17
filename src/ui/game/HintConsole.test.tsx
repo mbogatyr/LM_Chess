@@ -49,3 +49,20 @@ test('the refresh button calls onRefresh', async () => {
   )
   expect(onRefresh).toHaveBeenCalledTimes(1)
 })
+
+test('disabled: level buttons and refresh are disabled, readout is empty', () => {
+  render(
+    wrap(
+      <HintConsole
+        level={0}
+        onSelect={() => {}}
+        onRefresh={() => {}}
+        disabled
+      />,
+    ),
+  )
+  screen.getAllByRole('button').forEach((b) => expect(b).toBeDisabled())
+  expect(
+    screen.getByText('Застряли? Выберите уровень подсказки.'),
+  ).toBeInTheDocument()
+})
