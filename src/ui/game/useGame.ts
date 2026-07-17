@@ -33,6 +33,7 @@ export function useGame(): UseGame {
 
   const onSquareClick = useCallback(
     (sq: SquareName) => {
+      if (pendingPromotion) return
       if (state.status.isGameOver) return
       if (selected) {
         const toSq = legalMoves(state, selected).filter((m) => m.to === sq)
@@ -53,7 +54,7 @@ export function useGame(): UseGame {
       const piece = state.board[r][c]
       setSelected(piece && piece.color === state.turn ? sq : null)
     },
-    [state, selected],
+    [state, selected, pendingPromotion],
   )
 
   const choosePromotion = useCallback(
