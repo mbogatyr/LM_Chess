@@ -55,12 +55,12 @@ npm run lint && npm run format:check && npm run typecheck && npm test && npm run
 ```
 src/
   engine/   # chess.js wrapper (rules/state) — DONE: types.ts, game.ts (newGame/move/legalMoves) (+ tests)
-  llm/      # LM Studio HTTP client — DONE: client.ts, types.ts, url.ts (+ tests)
+  llm/      # LM Studio I/O + move selection — DONE: client.ts (discovery/load), chat.ts (chat+completion transports), adapters/ (ModelAdapter strategy: types, encoding, genericFen default, index/resolveAdapter), selectMove.ts (parse→validate→retry→random fallback), types.ts, url.ts (+ tests)
   ui/
     app/        # i18n (RU/EN), app-state screen router, demo data (ELO_BANDS, HISTORY, historyStats)
     shell/      # window chrome + Topbar (brand, Game/History tabs, connection pill, RU/EN toggle)
     onboarding/ # wizard: Connect → Models → ELO (Connect/Models wired to useConnection; ELO is presentational)
-    game/       # interactive game screen — hotseat play wired to src/engine via useGame (Board, PromotionPicker, MoveList, PlayerStrip, HintConsole[inert])
+    game/       # interactive game screen — human (White) vs local model (Black) via useGame over src/engine + src/llm/selectMove (Board, PromotionPicker, MoveList, PlayerStrip, connection banner, fallback note, HintConsole[inert])
     history/    # static presentational History screen on demo data (stat tiles + match table)
     useConnection.ts  # LM Studio connection hook (wraps src/llm)
   App.tsx   # real app entry — routes screen state to the shell + screens above
@@ -69,7 +69,7 @@ src/
   test/setup.ts   # registers jest-dom matchers
 ```
 
-`engine/` has a real core: a pure `chess.js` wrapper (`newGame`/`move`/`legalMoves`, full game-status taxonomy) with its own test suite — no React, no UI wiring. `ui/game/` is now **interactive**: a human plays a full game in **hotseat** (moving both sides) via the `useGame` hook over the engine — real legal-move highlighting, move list, turn/result status, check + last-move, a promotion picker, New Game. Keep the three responsibilities separate as the app grows: **rules/state** (`engine/`), **LLM I/O** (`llm/`), and **presentation** (`ui/`) must not bleed into each other. `ui/history/` is still **presentational on demo data**, and `ui/game/` has no LLM opponent yet (hint panel is inert, clocks frozen, no persistence) — that is sub-projects C (LLM) and D (real history/clocks/persistence).
+`engine/` has a real core: a pure `chess.js` wrapper (`newGame`/`move`/`legalMoves`, full game-status taxonomy) with its own test suite — no React, no UI wiring. `ui/game/` is now a **real game vs the model**: the human plays **White**, a local LM Studio model plays **Black**. `useGame` drives it over the engine + `src/llm/selectMove` — real legal-move highlighting, move list, turn/result status, check + last-move, a promotion picker, New Game, a "model is thinking" state, a connection-error banner with retry, and a fallback note when the model's move couldn't be parsed. Move selection goes through a universal `ModelAdapter` strategy (`src/llm/adapters`, injected by `resolveAdapter(modelId)` with a generic FEN-only default) so per-model prompt/parse formats can be added without touching the engine; the **engine always judges legality** (illegal/unparseable → retry with correction → random legal fallback). Keep the three responsibilities separate as the app grows: **rules/state** (`engine/`), **LLM I/O + move selection** (`llm/`), and **presentation** (`ui/`) must not bleed into each other (`llm` must not import `ui`). `ui/history/` is still **presentational on demo data**, and `ui/game/` still has an inert hint panel, frozen clocks, and no persistence — that is sub-project D (real history/clocks/persistence + real hints, plus a commentary-model adapter).
 
 ## Development standards
 
@@ -132,16 +132,17 @@ Other standing rules:
 - Real gameplay track (chess.js). Decomposed into sub-projects A→B→C→D.
   - Sub-project A — engine core (`src/engine`, chess.js wrapper) — spec: `docs/superpowers/specs/2026-07-16-engine-core-chess-js-design.md`, plan: `docs/superpowers/plans/2026-07-16-engine-core.md`. **DONE.**
   - Sub-project B — interactive human play (`ui/game` ← engine, hotseat) — spec: `docs/superpowers/specs/2026-07-17-interactive-human-play-design.md`, plan: `docs/superpowers/plans/2026-07-17-interactive-human-play.md`. **DONE.**
+  - Sub-project C — LLM opponent (`src/llm` chat/completion transports + `ModelAdapter` layer + `selectMove`, orchestrated by `useGame`) — spec: `docs/superpowers/specs/2026-07-17-llm-opponent-design.md`, plan: `docs/superpowers/plans/2026-07-17-llm-opponent.md`. **DONE.**
 
 The full Nocturne prototype (markup/copy source of truth) is vendored read-only at `docs/design-reference/gambit-local/`.
 
 ## What's next (not yet built)
 
 - **Appearance feature** (deferred from Phase 3): the `◧` topbar button, the appearance sheet, and the board-palette / piece-style pickers. `appState.boardStyle`/`pieceStyle` and their setters already exist and are read by `Board`, but there is no UI to change them yet. Needs its own brainstorm → spec → plan cycle.
-- **Real gameplay** (`chess.js`), decomposed into sub-projects, of which **A is done**:
+- **Real gameplay** (`chess.js`), decomposed into sub-projects **A, B and C done**:
   - **A — engine core** (`src/engine`): pure chess.js wrapper — `newGame`/`move`/`legalMoves`, full check/checkmate/stalemate/draw taxonomy, engine-owned board matrix and types. **DONE** (this is rules/state only; no UI, no LLM).
-  - **B — interactive human play**: `ui/game` wired to the engine (hotseat click select→move, legal-move highlighting, real move list, promotion picker, turn/result status, New Game). **DONE.**
-  - **C — LLM opponent**: chat-completion call in `src/llm` + a move-selection layer that validates the model's move against the engine's legal set and retries. Not built.
-  - **D — real history + persistence**: finished game → History entry (replacing demo data), real hints, clocks. Not built.
-  - `ui/game` is now real hotseat play (sub-project B); `ui/history` remains **presentational, on demo data** until D wires it to real finished games.
+  - **B — interactive human play**: `ui/game` wired to the engine (hotseat click select→move, legal-move highlighting, real move list, promotion picker, turn/result status, New Game). **DONE** (superseded by C: the human now plays White only, the model plays Black).
+  - **C — LLM opponent**: `src/llm` chat/completion transports + a universal `ModelAdapter` strategy layer (per-model prompt/parse, generic FEN-only default via `resolveAdapter`) + `selectMove` (validates the model's move against the engine's legal set, retries with correction, random-legal fallback), orchestrated by `useGame` (model plays Black; thinking state; connection auto-retry + banner). **DONE.**
+  - **D — real history + persistence**: finished game → History entry (replacing demo data), real hints (incl. a commentary-model adapter, e.g. `chess-gemma-commentary`), clocks. Not built.
+  - `ui/game` is now a real game vs the model (sub-projects B+C); `ui/history` remains **presentational, on demo data** until D wires it to real finished games.
 - Each of the above gets its own spec → plan → implementation cycle, per the Superpowers methodology below.
