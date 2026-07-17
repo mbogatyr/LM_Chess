@@ -76,9 +76,8 @@ export async function chatCompletion(
     { model: req.model, messages: req.messages, ...sampling(req) },
     req.signal,
   )
-  const content = (
-    body as { choices?: { message?: { content?: unknown } }[] }
-  )?.choices?.[0]?.message?.content
+  const content = (body as { choices?: { message?: { content?: unknown } }[] })
+    ?.choices?.[0]?.message?.content
   if (typeof content !== 'string') {
     throw new LMStudioError('parse', 'LM Studio returned no message content.')
   }
