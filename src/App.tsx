@@ -36,6 +36,8 @@ export default function App() {
           elo={elo}
           boardStyle={boardStyle}
           pieceStyle={pieceStyle}
+          baseUrl={conn.state.baseUrl}
+          model={conn.state.activeModel ?? ''}
         />
       )}
       {screen === 'history' && <HistoryScreen />}
