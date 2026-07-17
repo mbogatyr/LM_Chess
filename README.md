@@ -31,9 +31,15 @@ npm run dev
 The LM Studio connection (real HTTP client + connection hook) and the full
 **NeuroChess / Nocturne** UI shell are implemented: onboarding wizard (connect
 to a local LM Studio server, list and load models, pick an ELO level), a game
-screen, and a history screen. The game and history screens are currently
-**presentational, running on hardcoded demo data** — there is no real chess
-engine yet, so moves, the board position, and match history don't reflect
-actual play. Real chess rules (`chess.js`) and the appearance picker (board
-palette / piece style) are not implemented yet. See `CLAUDE.md` for the full
-picture and what's next.
+screen, and a history screen.
+
+A real chess engine (`chess.js` wrapper in `src/engine`) now owns the rules, and
+the **game screen is playable**: you can play a full game in **hotseat** (one
+person moving both sides) — click-to-move with legal-move highlighting, a live
+move list, turn/check/checkmate/draw status, a promotion picker, and New Game.
+
+Not yet built: the **LLM opponent** (the model choosing and playing moves), and
+real match history / clocks / game persistence — so the history screen is still
+**presentational on demo data**, and the game's hint panel and clocks are inert.
+The appearance picker (board palette / piece style) is also not implemented yet.
+See `CLAUDE.md` for the full picture and what's next.
