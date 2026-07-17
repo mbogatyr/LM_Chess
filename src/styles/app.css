@@ -1101,3 +1101,19 @@ input[type='range'].slider::-moz-range-thumb {
 .promo-btn:hover {
   border-color: var(--color-accent);
 }
+.conn-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--danger, #e5484d);
+  border-radius: 10px;
+  color: var(--danger, #e5484d);
+  font-size: 14px;
+}
+.fallback-note {
+  padding: 6px 12px;
+  color: var(--muted, #9aa);
+  font-size: 13px;
+}

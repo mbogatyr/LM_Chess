@@ -8,6 +8,7 @@ import { PlayerStrip } from './PlayerStrip'
 import { MoveList } from './MoveList'
 import { PromotionPicker } from './PromotionPicker'
 import { useGame } from './useGame'
+import { selectMove } from '../../llm/selectMove'
 
 function findKing(board: Square[][], color: Color): SquareName | null {
   for (let r = 0; r < 8; r++) {
@@ -53,14 +54,20 @@ export function GameScreen({
   elo,
   boardStyle,
   pieceStyle,
+  baseUrl,
+  model,
+  selectMoveFn,
 }: {
   opponentName: string
   elo: number
   boardStyle: BoardStyle
   pieceStyle: PieceStyle
+  baseUrl: string
+  model: string
+  selectMoveFn?: typeof selectMove
 }) {
   const { t } = useI18n()
-  const g = useGame()
+  const g = useGame({ baseUrl, model, elo, selectMoveFn })
   const { state } = g
   const checkSquare = state.status.isCheck
     ? findKing(state.board, state.turn)
@@ -117,12 +124,25 @@ export function GameScreen({
             <small>
               {state.status.isGameOver
                 ? ''
-                : status.theirs
-                  ? t('theirmove')
-                  : t('yourmove')}
+                : g.thinking
+                  ? t('theirsub')
+                  : status.theirs
+                    ? t('theirmove')
+                    : t('yourmove')}
             </small>
           </span>
         </div>
+        {g.connectionError && (
+          <div className="conn-error" role="alert">
+            <span>{t('conn_lost')}</span>
+            <button type="button" className="btn" onClick={g.retryModelTurn}>
+              {t('retry_move')}
+            </button>
+          </div>
+        )}
+        {g.lastMoveFallback && !g.thinking && (
+          <div className="fallback-note">{t('fallback_move')}</div>
+        )}
         <HintConsole
           level={0}
           onSelect={() => {}}
