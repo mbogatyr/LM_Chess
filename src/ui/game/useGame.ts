@@ -160,7 +160,10 @@ export function useGame(opts: UseGameOptions): UseGame {
           return
         } catch (err) {
           if (stale()) return
-          if (!(err instanceof LMStudioError)) throw err
+          if (!(err instanceof LMStudioError)) {
+            setThinking(false)
+            throw err
+          }
           if (attempt < retryDelays.length) {
             await sleep(retryDelays[attempt])
             if (stale()) return

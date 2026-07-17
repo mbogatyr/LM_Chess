@@ -134,3 +134,43 @@ test('choosePromotion is a no-op when nothing is pending', () => {
   act(() => result.current.choosePromotion('q'))
   expect(result.current.state.history).toEqual([])
 })
+
+test('newGame while the model is thinking discards the late result', async () => {
+  let resolveMove: () => void = () => {}
+  const deferred: typeof selectMove = ({ state }) =>
+    new Promise((resolve) => {
+      resolveMove = () =>
+        resolve({ nextState: move(state, 'e5')!, san: 'e5', source: 'model' })
+    })
+  const o = opts({ selectMoveFn: deferred })
+  const { result } = renderHook(() => useGame(o))
+  act(() => result.current.onSquareClick('e2'))
+  act(() => result.current.onSquareClick('e4')) // Black to move -> deferred turn starts
+  expect(result.current.thinking).toBe(true)
+  act(() => result.current.newGame()) // aborts + bumps generation
+  await act(async () => {
+    resolveMove() // the aborted turn resolves late
+    await Promise.resolve()
+  })
+  expect(result.current.state.history).toEqual([]) // stale Black move NOT applied to fresh board
+  expect(result.current.thinking).toBe(false)
+})
+
+test('auto-retries on connection error with backoff, then recovers', async () => {
+  const reply = scriptedOpponent(['e5'])
+  let calls = 0
+  const flaky: typeof selectMove = (p) => {
+    calls++
+    if (calls <= 2) return Promise.reject(new LMStudioError('network', 'down'))
+    return reply(p)
+  }
+  const o = opts({ selectMoveFn: flaky, retryDelays: [1, 1] })
+  const { result } = renderHook(() => useGame(o))
+  act(() => result.current.onSquareClick('e2'))
+  act(() => result.current.onSquareClick('e4'))
+  await waitFor(() =>
+    expect(result.current.state.history).toEqual(['e4', 'e5']),
+  )
+  expect(result.current.connectionError).toBeNull()
+  expect(calls).toBe(3) // 1 initial + 2 auto-retries (retryDelays.length === 2)
+})
