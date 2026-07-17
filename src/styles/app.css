@@ -1087,6 +1087,7 @@ input[type='range'].slider::-moz-range-thumb {
   box-shadow: var(--shadow-lg);
 }
 .promo-btn {
+  position: relative;
   width: 56px;
   height: 56px;
   display: grid;
@@ -1096,10 +1097,6 @@ input[type='range'].slider::-moz-range-thumb {
   border-radius: var(--radius-sm);
   color: inherit;
   cursor: pointer;
-}
-.promo-btn .piece {
-  width: 78%;
-  height: 78%;
 }
 .promo-btn:hover {
   border-color: var(--color-accent);
