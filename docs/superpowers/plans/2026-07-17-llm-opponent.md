@@ -49,10 +49,12 @@
 ## Task 1: Chat + completion transports (`src/llm/chat.ts`)
 
 **Files:**
+
 - Create: `src/llm/chat.ts`
 - Test: `src/llm/chat.test.ts`
 
 **Interfaces:**
+
 - Consumes: `normalizeBaseUrl` from `src/llm/url.ts`; `LMStudioError` from `src/llm/types.ts`.
 - Produces:
   - `type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string }`
@@ -237,9 +239,8 @@ export async function chatCompletion(
     { model: req.model, messages: req.messages, ...sampling(req) },
     req.signal,
   )
-  const content = (
-    body as { choices?: { message?: { content?: unknown } }[] }
-  )?.choices?.[0]?.message?.content
+  const content = (body as { choices?: { message?: { content?: unknown } }[] })
+    ?.choices?.[0]?.message?.content
   if (typeof content !== 'string') {
     throw new LMStudioError('parse', 'LM Studio returned no message content.')
   }
@@ -284,10 +285,12 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 2: Position encoders (`src/llm/adapters/encoding.ts`)
 
 **Files:**
+
 - Create: `src/llm/adapters/encoding.ts`
 - Test: `src/llm/adapters/encoding.test.ts`
 
 **Interfaces:**
+
 - Consumes: `newGame`, `move` from `src/engine/game.ts`; `legalMoves` from `src/engine/game.ts`; `GameState`, `LegalMove` from `src/engine/types.ts`.
 - Produces:
   - `toFen(state: GameState): string`
@@ -397,6 +400,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 3: Adapter layer (`types.ts`, `genericFen.ts`, `index.ts`)
 
 **Files:**
+
 - Create: `src/llm/adapters/types.ts`
 - Create: `src/llm/adapters/genericFen.ts`
 - Create: `src/llm/adapters/index.ts`
@@ -404,6 +408,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Test: `src/llm/adapters/index.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ChatMessage` from `src/llm/chat.ts`; `GameState`, `LegalMove`, `MoveInput` from `src/engine/types.ts`; `toFen`, `toSanMoveChain` from `./encoding`.
 - Produces:
   - `type ModelRequest = { kind: 'chat'; messages: ChatMessage[] } | { kind: 'completion'; prompt: string }`
@@ -546,8 +551,7 @@ function userMessage(ctx: MoveContext): string {
   )
 }
 
-const SAN_RE =
-  /(O-O-O|O-O|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?)/
+const SAN_RE = /(O-O-O|O-O|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?)/
 
 // Extract ordered candidate move tokens from a possibly-chatty reply. The
 // engine is the ultimate judge; this only needs to surface likely tokens.
@@ -556,7 +560,10 @@ export function parseSanCandidates(reply: string): string[] {
   const candidates: string[] = []
   const push = (raw: string | undefined) => {
     if (!raw) return
-    const t = raw.trim().replace(/^["'`*]+/, '').replace(/["'`*.!,]+$/, '')
+    const t = raw
+      .trim()
+      .replace(/^["'`*]+/, '')
+      .replace(/["'`*.!,]+$/, '')
     if (t && !candidates.includes(t)) candidates.push(t)
   }
   push(cleaned)
@@ -599,7 +606,12 @@ export function resolveAdapter(modelId: string): ModelAdapter {
   return ADAPTERS.find((a) => a.matches(modelId)) ?? defaultAdapter
 }
 
-export type { ModelAdapter, ModelRequest, MoveContext, ChatMessage } from './types'
+export type {
+  ModelAdapter,
+  ModelRequest,
+  MoveContext,
+  ChatMessage,
+} from './types'
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -621,10 +633,12 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 4: Move-selection engine (`src/llm/selectMove.ts`)
 
 **Files:**
+
 - Create: `src/llm/selectMove.ts`
 - Test: `src/llm/selectMove.test.ts`
 
 **Interfaces:**
+
 - Consumes: `chatCompletion`, `completion` from `./chat`; `resolveAdapter` from `./adapters`; `ModelAdapter` from `./adapters/types`; `legalMoves`, `move` from `../engine/game`; `GameState` from `../engine/types`; `LMStudioError` from `./types`.
 - Produces:
   - `MAX_MOVE_RETRIES` (= 3)
@@ -707,9 +721,7 @@ test('falls back to a random legal move after exhausting retries', async () => {
 })
 
 test('propagates LMStudioError from the transport (no fallback)', async () => {
-  const chat = vi
-    .fn()
-    .mockRejectedValue(new LMStudioError('network', 'down'))
+  const chat = vi.fn().mockRejectedValue(new LMStudioError('network', 'down'))
   await expect(
     selectMove(params(), { adapter: fakeAdapter, chat }),
   ).rejects.toBeInstanceOf(LMStudioError)
@@ -808,7 +820,11 @@ export async function selectMove(
     for (const candidate of adapter.parseMoves(reply, ctx)) {
       const next = move(state, candidate)
       if (next) {
-        return { nextState: next, san: next.lastMove?.san ?? '', source: 'model' }
+        return {
+          nextState: next,
+          san: next.lastMove?.san ?? '',
+          source: 'model',
+        }
       }
     }
     correction = { badReply: reply, reason: 'illegal or unparseable move' }
@@ -845,10 +861,12 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 5: Orchestrate the model's turn in `useGame`
 
 **Files:**
+
 - Modify: `src/ui/game/useGame.ts`
 - Modify (rewrite): `src/ui/game/useGame.test.ts`
 
 **Interfaces:**
+
 - Consumes: `selectMove` from `../../llm/selectMove`; `LMStudioError` from `../../llm/types`; `legalMoves`, `move`, `newGame` from `../../engine/game`.
 - Produces:
   - `type UseGameOptions = { baseUrl: string; model: string; elo: number; selectMoveFn?: typeof selectMove; retryDelays?: number[] }`
@@ -918,7 +936,9 @@ test('after White moves, the model plays Black and the turn returns to White', a
   const { result } = renderHook(() => useGame(o))
   act(() => result.current.onSquareClick('e2'))
   act(() => result.current.onSquareClick('e4'))
-  await waitFor(() => expect(result.current.state.history).toEqual(['e4', 'e5']))
+  await waitFor(() =>
+    expect(result.current.state.history).toEqual(['e4', 'e5']),
+  )
   expect(result.current.state.turn).toBe('w')
   expect(result.current.thinking).toBe(false)
 })
@@ -951,7 +971,9 @@ test('a connection failure surfaces connectionError, then retry recovers', async
   await waitFor(() => expect(result.current.connectionError).toBe('down'))
   expect(result.current.thinking).toBe(false)
   act(() => result.current.retryModelTurn())
-  await waitFor(() => expect(result.current.state.history).toEqual(['e4', 'e5']))
+  await waitFor(() =>
+    expect(result.current.state.history).toEqual(['e4', 'e5']),
+  )
   expect(result.current.connectionError).toBeNull()
 })
 
@@ -975,7 +997,9 @@ test('newGame resets state, selection and thinking', async () => {
   const { result } = renderHook(() => useGame(o))
   act(() => result.current.onSquareClick('e2'))
   act(() => result.current.onSquareClick('e4'))
-  await waitFor(() => expect(result.current.state.history).toEqual(['e4', 'e5']))
+  await waitFor(() =>
+    expect(result.current.state.history).toEqual(['e4', 'e5']),
+  )
   act(() => result.current.newGame())
   expect(result.current.state.history).toEqual([])
   expect(result.current.selected).toBeNull()
@@ -1236,12 +1260,14 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 6: Game-screen presentation (thinking, banner, fallback note)
 
 **Files:**
+
 - Modify: `src/ui/app/i18n.tsx` (add 3 keys × RU/EN)
 - Modify: `src/ui/game/GameScreen.tsx`
 - Modify (rewrite): `src/ui/game/GameScreen.test.tsx`
 - Modify: `src/styles/app.css`
 
 **Interfaces:**
+
 - Consumes: `useGame` (Task 5); `useI18n` from `../app/i18n`.
 - Produces: `GameScreen` props gain `baseUrl: string`, `model: string`, and an optional `selectMoveFn?: typeof selectMove` test seam. New i18n keys: `conn_lost`, `retry_move`, `fallback_move`.
 
@@ -1411,35 +1437,35 @@ export function GameScreen({
 Replace the status `<small>` line so "thinking" wins over the turn text:
 
 ```tsx
-            <small>
-              {state.status.isGameOver
-                ? ''
-                : g.thinking
-                  ? t('theirsub')
-                  : status.theirs
-                    ? t('theirmove')
-                    : t('yourmove')}
-            </small>
+<small>
+  {state.status.isGameOver
+    ? ''
+    : g.thinking
+      ? t('theirsub')
+      : status.theirs
+        ? t('theirmove')
+        : t('yourmove')}
+</small>
 ```
 
 Add the connection banner + fallback note immediately after the `<div className={'status' ...}>...</div>` block and before `<HintConsole ... />`:
 
 ```tsx
-        {g.connectionError && (
-          <div className="conn-error" role="alert">
-            <span>{t('conn_lost')}</span>
-            <button
-              type="button"
-              className="btn"
-              onClick={g.retryModelTurn}
-            >
-              {t('retry_move')}
-            </button>
-          </div>
-        )}
-        {g.lastMoveFallback && !g.thinking && (
-          <div className="fallback-note">{t('fallback_move')}</div>
-        )}
+{
+  g.connectionError && (
+    <div className="conn-error" role="alert">
+      <span>{t('conn_lost')}</span>
+      <button type="button" className="btn" onClick={g.retryModelTurn}>
+        {t('retry_move')}
+      </button>
+    </div>
+  )
+}
+{
+  g.lastMoveFallback && !g.thinking && (
+    <div className="fallback-note">{t('fallback_move')}</div>
+  )
+}
 ```
 
 - [ ] **Step 5: Add minimal CSS**
@@ -1484,9 +1510,11 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 7: Wire `App.tsx` + live end-to-end verification
 
 **Files:**
+
 - Modify: `src/App.tsx`
 
 **Interfaces:**
+
 - Consumes: `conn.state.baseUrl`, `conn.state.activeModel` from `useConnection`; `GameScreen` (Task 6).
 - Produces: no new exports.
 
@@ -1495,16 +1523,18 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 In `src/App.tsx`, update the `GameScreen` usage:
 
 ```tsx
-      {screen === 'game' && (
-        <GameScreen
-          opponentName={conn.state.activeModel ?? 'Qwen2.5 14B'}
-          elo={elo}
-          boardStyle={boardStyle}
-          pieceStyle={pieceStyle}
-          baseUrl={conn.state.baseUrl}
-          model={conn.state.activeModel ?? ''}
-        />
-      )}
+{
+  screen === 'game' && (
+    <GameScreen
+      opponentName={conn.state.activeModel ?? 'Qwen2.5 14B'}
+      elo={elo}
+      boardStyle={boardStyle}
+      pieceStyle={pieceStyle}
+      baseUrl={conn.state.baseUrl}
+      model={conn.state.activeModel ?? ''}
+    />
+  )
+}
 ```
 
 - [ ] **Step 2: Run the full unit gate**

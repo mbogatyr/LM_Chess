@@ -52,7 +52,10 @@ adapter is the single seam that absorbs all of this.
 // src/llm/adapters/types.ts
 import type { GameState, LegalMove, MoveInput } from '../../engine/types'
 
-export type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string }
+export type ChatMessage = {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
 
 // Transport is a property of the adapter: a chat request OR a raw prompt completion.
 export type ModelRequest =
@@ -159,8 +162,19 @@ export type MoveSelection = {
 }
 
 export async function selectMove(
-  params: { baseUrl: string; model: string; state: GameState; elo: number; signal?: AbortSignal },
-  deps?: { adapter?: ModelAdapter; chat?: typeof chatCompletion; complete?: typeof completion; rng?: () => number },
+  params: {
+    baseUrl: string
+    model: string
+    state: GameState
+    elo: number
+    signal?: AbortSignal
+  },
+  deps?: {
+    adapter?: ModelAdapter
+    chat?: typeof chatCompletion
+    complete?: typeof completion
+    rng?: () => number
+  },
 ): Promise<MoveSelection>
 ```
 
@@ -171,10 +185,10 @@ Algorithm:
    plus up to two correction re-requests) before giving up and falling back:
    a. Build `ctx` (with `correction` set from the previous bad reply on attempts ≥ 2).
    b. `req = adapter.buildRequest(ctx)`; dispatch by `req.kind` to `chatCompletion` /
-      `completion`, passing `adapter.sampling` merged over defaults (`MODEL_TEMPERATURE ≈ 0.7`,
-      `MAX_TOKENS ≈ 64`) and the `signal`.
+   `completion`, passing `adapter.sampling` merged over defaults (`MODEL_TEMPERATURE ≈ 0.7`,
+   `MAX_TOKENS ≈ 64`) and the `signal`.
    c. `candidates = adapter.parseMoves(reply, ctx)`. For each candidate in order, try
-      `move(state, candidate)`; the first non-`null` result wins → return `{ nextState, san, source: 'model' }`.
+   `move(state, candidate)`; the first non-`null` result wins → return `{ nextState, san, source: 'model' }`.
    d. If none is legal, record the reply as `correction.badReply` and loop.
 3. After the retries are exhausted, pick a uniformly-random move from `legal` (using `deps.rng`),
    apply it, and return `{ ..., source: 'fallback' }`.
@@ -245,7 +259,7 @@ scope), but the layer is ready for them with no core changes.
   Alpaca **completion** transport (`### Instruction / ### Input / ### Response:`); input is a
   **SAN move chain + the legal-move list**; output is a **predicted sequence** of SAN moves.
   Its future adapter: `buildRequest` → `{ kind: 'completion', prompt: <alpaca with toSanMoveChain +
-  toLegalSan> }`, `sampling.maxTokens ≈ 16`, `parseMoves` → split the sequence into ordered SAN
+toLegalSan> }`, `sampling.maxTokens ≈ 16`, `parseMoves` → split the sequence into ordered SAN
   candidates. Note this legitimately uses a legal-move list and a completion transport — the
   opposite of the generic default's FEN-only chat contract. That divergence is exactly why the
   abstraction exists; "FEN-only, no legal list" is the **generic default's** contract only.
