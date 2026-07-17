@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test } from 'vitest'
-import { I18nProvider, useI18n } from './i18n'
+import { I18nProvider, STRINGS, useI18n } from './i18n'
 import type { ReactNode } from 'react'
 
 const wrapper = ({ children }: { children: ReactNode }) => (
@@ -34,4 +34,23 @@ test('reads persisted language on init and preserves other stored keys', () => {
   const stored = JSON.parse(localStorage.getItem('nocturne-chess')!)
   expect(stored.lang).toBe('ru')
   expect(stored.elo).toBe(1200)
+})
+
+test('has the game status/result keys in both languages', () => {
+  const keys = [
+    'turn_w',
+    'turn_b',
+    'st_check',
+    'st_mate_w',
+    'st_mate_b',
+    'st_draw',
+    'dr_stalemate',
+    'dr_fifty',
+    'dr_threefold',
+    'dr_material',
+  ] as const
+  keys.forEach((k) => {
+    expect(STRINGS.ru[k]).toBeTruthy()
+    expect(STRINGS.en[k]).toBeTruthy()
+  })
 })
