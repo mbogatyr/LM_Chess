@@ -9,6 +9,8 @@ import { MoveList } from './MoveList'
 import { PromotionPicker } from './PromotionPicker'
 import { useGame } from './useGame'
 import { selectMove } from '../../llm/selectMove'
+import { useHint } from './useHint'
+import type { getHint } from '../../llm/hint'
 
 function findKing(board: Square[][], color: Color): SquareName | null {
   for (let r = 0; r < 8; r++) {
@@ -64,6 +66,7 @@ export function GameScreen({
   baseUrl,
   model,
   selectMoveFn,
+  getHintFn,
 }: {
   opponentName: string
   elo: number
@@ -72,6 +75,7 @@ export function GameScreen({
   baseUrl: string
   model: string
   selectMoveFn?: typeof selectMove
+  getHintFn?: typeof getHint
 }) {
   const { t } = useI18n()
   const g = useGame({ baseUrl, model, elo, selectMoveFn, opponentName })
@@ -80,6 +84,20 @@ export function GameScreen({
     ? findKing(state.board, state.turn)
     : null
   const status = statusView(state, t, g.outcome)
+  const hintEnabled =
+    state.turn === 'w' &&
+    !g.thinking &&
+    !g.outcome.over &&
+    !g.connectionError &&
+    !!model
+  const hint = useHint({
+    baseUrl,
+    model,
+    elo,
+    state,
+    enabled: hintEnabled,
+    getHintFn,
+  })
 
   return (
     <div className="game">
@@ -102,6 +120,7 @@ export function GameScreen({
                 : null
             }
             checkSquare={checkSquare}
+            hintMove={hint.hintMove}
             onSquareClick={g.onSquareClick}
             boardStyle={boardStyle}
             pieceStyle={pieceStyle}
@@ -151,10 +170,13 @@ export function GameScreen({
           <div className="fallback-note">{t('fallback_move')}</div>
         )}
         <HintConsole
-          level={0}
-          onSelect={() => {}}
-          onRefresh={() => {}}
-          disabled
+          level={hint.level}
+          hint={hint.hint}
+          loading={hint.loading}
+          errorKind={hint.errorKind}
+          onSelectLevel={hint.reveal}
+          onRefresh={hint.refresh}
+          disabled={!hintEnabled}
         />
         <MoveList
           history={state.history}
