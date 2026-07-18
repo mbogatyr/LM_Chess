@@ -51,6 +51,12 @@ history screen — no more demo data. The clocks are fixed at 10:00 per side; th
 model's clock is frozen while it thinks, so it never flags on slow hardware, and
 running White out of time is a loss.
 
-Not yet built: real hints (the hint panel is still inert) and a commentary-model
-adapter, plus the appearance picker (board palette / piece style). See
-`CLAUDE.md` for the full picture and what's next.
+**Hints are real too.** On your turn the hint panel asks the connected model for
+one recommended move and reveals it progressively — which piece to move, the
+idea behind it, then the exact move with the squares highlighted on the board.
+The engine validates the suggestion (a hint is never a random move); if the
+model can't produce a legal hint the panel says so rather than guessing.
+
+Not yet built: a commentary-model adapter (a model that _comments on_ a played
+move) and the appearance picker (board palette / piece style). See `CLAUDE.md`
+for the full picture and what's next.
