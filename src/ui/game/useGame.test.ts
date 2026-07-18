@@ -1,7 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { expect, test } from 'vitest'
+import { afterEach, beforeEach, expect, test } from 'vitest'
 import { move } from '../../engine/game'
 import { LMStudioError } from '../../llm/types'
+import { loadGames } from '../history/gameHistory'
 import { useGame, type UseGameOptions } from './useGame'
 import type { selectMove } from '../../llm/selectMove'
 
@@ -33,6 +34,9 @@ const opts = (over: Partial<UseGameOptions> = {}): UseGameOptions => ({
   retryDelays: [],
   ...over,
 })
+
+beforeEach(() => localStorage.clear())
+afterEach(() => localStorage.clear())
 
 test('selecting a white pawn lists its legal targets', () => {
   const o = opts()
@@ -173,4 +177,62 @@ test('auto-retries on connection error with backoff, then recovers', async () =>
   )
   expect(result.current.connectionError).toBeNull()
   expect(calls).toBe(3) // 1 initial + 2 auto-retries (retryDelays.length === 2)
+})
+
+test('both clocks are composed and start at 10:00', () => {
+  const o = opts()
+  const { result } = renderHook(() => useGame(o))
+  expect(result.current.whiteClock).toBe('10:00')
+  expect(result.current.blackClock).toBe('10:00')
+})
+// (Tick-down mechanics are covered non-flakily in useChessClock.test.ts with
+// fake timers; asserting the mm:ss string changes here would race the ~1s
+// second-boundary against waitFor's default timeout.)
+
+test('resign ends the game as a loss and records it once', async () => {
+  const o = opts({ opponentName: 'Test Bot', elo: 1234 })
+  const { result } = renderHook(() => useGame(o))
+  act(() => result.current.resign())
+  expect(result.current.outcome).toEqual({
+    over: true,
+    result: 'loss',
+    reason: 'resignation',
+  })
+  await waitFor(() => expect(loadGames()).toHaveLength(1))
+  const [rec] = loadGames()
+  expect(rec.result).toBe('loss')
+  expect(rec.reason).toBe('resignation')
+  expect(rec.opponent).toBe('Test Bot')
+  expect(rec.elo).toBe(1234)
+})
+
+test('White flagging on time is a recorded loss', async () => {
+  // tiny clock so White flags almost immediately
+  const o = opts({ initialClockMs: 200 })
+  const { result } = renderHook(() => useGame(o))
+  await waitFor(() => expect(result.current.outcome.reason).toBe('timeout'))
+  expect(result.current.outcome.result).toBe('loss')
+  await waitFor(() => expect(loadGames()).toHaveLength(1))
+  expect(loadGames()[0].reason).toBe('timeout')
+})
+
+test('starting a new game after finishing does not double-record', async () => {
+  const o = opts()
+  const { result } = renderHook(() => useGame(o))
+  act(() => result.current.resign())
+  await waitFor(() => expect(loadGames()).toHaveLength(1))
+  act(() => result.current.newGame())
+  expect(result.current.outcome.over).toBe(false)
+  expect(result.current.whiteClock).toBe('10:00')
+  // abandoning the fresh game (New Game again) records nothing new
+  act(() => result.current.newGame())
+  expect(loadGames()).toHaveLength(1)
+})
+
+test('the human cannot move after resigning', () => {
+  const o = opts()
+  const { result } = renderHook(() => useGame(o))
+  act(() => result.current.resign())
+  act(() => result.current.onSquareClick('e2'))
+  expect(result.current.selected).toBeNull()
 })

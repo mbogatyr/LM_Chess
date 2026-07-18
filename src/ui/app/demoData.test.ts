@@ -1,40 +1,11 @@
 import { expect, test } from 'vitest'
-import { HISTORY, historyStats, type HistoryEntry } from './demoData'
+import { ELO_BANDS, eloBand } from './demoData'
 
-const entry = (res: HistoryEntry['res'], elo = 1000): HistoryEntry => ({
-  date: '',
-  edate: '',
-  opp: '',
-  elo,
-  len: 0,
-  res,
-  open: '',
-  eopen: '',
+test('eloBand returns the first band whose max covers the rating', () => {
+  expect(eloBand(600).en[0]).toBe('Beginner')
+  expect(eloBand(1000).en[0]).toBe('Steady')
 })
 
-test('historyStats on the demo history', () => {
-  expect(historyStats(HISTORY)).toEqual({
-    played: 8,
-    winRate: 63,
-    streak: 1,
-    best: 1350,
-  })
-})
-
-test('streak counts only the leading run of wins', () => {
-  expect(
-    historyStats([entry('win'), entry('win'), entry('loss'), entry('win')])
-      .streak,
-  ).toBe(2)
-  expect(historyStats([entry('loss'), entry('win')]).streak).toBe(0)
-})
-
-test('winRate rounds to the nearest percent and best is the max elo', () => {
-  const stats = historyStats([
-    entry('win', 900),
-    entry('loss', 1200),
-    entry('loss', 1100),
-  ])
-  expect(stats.winRate).toBe(33)
-  expect(stats.best).toBe(1200)
+test('eloBand clamps to the top band above the highest max', () => {
+  expect(eloBand(9999)).toBe(ELO_BANDS[ELO_BANDS.length - 1])
 })

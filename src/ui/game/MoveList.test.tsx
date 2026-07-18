@@ -33,3 +33,28 @@ test('New Game is enabled and calls onNewGame; draw/resign disabled', async () =
   expect(screen.getByRole('button', { name: 'Ничья' })).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Сдаться' })).toBeDisabled()
 })
+
+test('Resign uses a two-step confirm and fires onResign on the second click', async () => {
+  const onResign = vi.fn()
+  render(
+    wrap(<MoveList history={[]} onNewGame={() => {}} onResign={onResign} />),
+  )
+  await userEvent.click(screen.getByRole('button', { name: 'Сдаться' }))
+  expect(onResign).not.toHaveBeenCalled()
+  await userEvent.click(screen.getByRole('button', { name: 'Точно?' }))
+  expect(onResign).toHaveBeenCalledTimes(1)
+})
+
+test('Resign is disabled when the game is over', () => {
+  render(
+    wrap(
+      <MoveList
+        history={[]}
+        onNewGame={() => {}}
+        onResign={() => {}}
+        gameOver
+      />,
+    ),
+  )
+  expect(screen.getByRole('button', { name: 'Сдаться' })).toBeDisabled()
+})

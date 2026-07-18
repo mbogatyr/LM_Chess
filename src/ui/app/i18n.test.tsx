@@ -54,3 +54,16 @@ test('has the game status/result keys in both languages', () => {
     expect(STRINGS.en[k]).toBeTruthy()
   })
 })
+
+test('has the resign/timeout/empty-history keys in both languages', () => {
+  const keys = [
+    'resign_confirm',
+    'st_time_loss',
+    'st_resign_loss',
+    'lb_empty',
+  ] as const
+  keys.forEach((k) => {
+    expect(STRINGS.ru[k]).toBeTruthy()
+    expect(STRINGS.en[k]).toBeTruthy()
+  })
+})

@@ -3,7 +3,13 @@ import { legalMoves, move, newGame as engineNewGame } from '../../engine/game'
 import type { GameState, PromotionPiece, SquareName } from '../../engine/types'
 import { selectMove as realSelectMove } from '../../llm/selectMove'
 import { LMStudioError } from '../../llm/types'
+import {
+  appendGame,
+  type EndReason,
+  type MatchResult,
+} from '../history/gameHistory'
 import { nameToRC } from './chessDemo'
+import { formatClock, useChessClock } from './useChessClock'
 
 export type LegalTarget = { to: SquareName; capture: boolean }
 export type PendingPromotion = { from: SquareName; to: SquareName } | null
@@ -15,6 +21,8 @@ export type UseGameOptions = {
   // test seams (defaults are the real dependency / production backoff)
   selectMoveFn?: typeof realSelectMove
   retryDelays?: number[]
+  initialClockMs?: number
+  opponentName?: string
 }
 
 export type UseGame = {
@@ -25,10 +33,18 @@ export type UseGame = {
   thinking: boolean
   connectionError: string | null
   lastMoveFallback: boolean
+  whiteClock: string
+  blackClock: string
+  outcome: {
+    over: boolean
+    result: MatchResult | null
+    reason: EndReason | null
+  }
   onSquareClick: (sq: SquareName) => void
   choosePromotion: (p: PromotionPiece) => void
   cancelPromotion: () => void
   retryModelTurn: () => void
+  resign: () => void
   newGame: () => void
 }
 
@@ -47,12 +63,51 @@ export function useGame(opts: UseGameOptions): UseGame {
   const [connectionError, setConnectionError] = useState<string | null>(null)
   const [lastMoveFallback, setLastMoveFallback] = useState(false)
   const [retryNonce, setRetryNonce] = useState(0)
+  const [resigned, setResigned] = useState(false)
+  const recordedRef = useRef(false)
 
   // Bumped on newGame / unmount so stale async results are ignored.
   const generation = useRef(0)
   const abortRef = useRef<AbortController | null>(null)
 
   const humansTurn = state.turn === 'w'
+
+  // Clock runs only on White's live turn. Black is frozen (its whole turn is
+  // covered by `thinking`), so the model never flags on slow hardware.
+  const engineOver = state.status.isGameOver
+  const clockRunning =
+    state.turn === 'w' &&
+    !engineOver &&
+    !resigned &&
+    !pendingPromotion &&
+    !connectionError
+  const clock = useChessClock({
+    turn: state.turn,
+    running: clockRunning,
+    initialMs: opts.initialClockMs,
+  })
+  const timedOut = clock.flagged === 'w'
+
+  const outcome = useMemo((): UseGame['outcome'] => {
+    const s = state.status
+    if (s.isCheckmate) {
+      return {
+        over: true,
+        result: s.result === 'white' ? 'win' : 'loss',
+        reason: 'checkmate',
+      }
+    }
+    if (s.isDraw) {
+      return {
+        over: true,
+        result: 'draw',
+        reason: s.drawReason ?? 'insufficient-material',
+      }
+    }
+    if (resigned) return { over: true, result: 'loss', reason: 'resignation' }
+    if (timedOut) return { over: true, result: 'loss', reason: 'timeout' }
+    return { over: false, result: null, reason: null }
+  }, [state.status, resigned, timedOut])
 
   const legalTargets = useMemo<LegalTarget[]>(() => {
     if (!selected) return []
@@ -67,7 +122,7 @@ export function useGame(opts: UseGameOptions): UseGame {
       if (pendingPromotion) return
       if (thinking || connectionError) return
       if (!humansTurn) return
-      if (state.status.isGameOver) return
+      if (outcome.over) return
       if (selected) {
         const toSq = legalMoves(state, selected).filter((m) => m.to === sq)
         if (toSq.length > 0) {
@@ -88,7 +143,15 @@ export function useGame(opts: UseGameOptions): UseGame {
       const piece = state.board[r][c]
       setSelected(piece && piece.color === state.turn ? sq : null)
     },
-    [state, selected, pendingPromotion, thinking, connectionError, humansTurn],
+    [
+      state,
+      selected,
+      pendingPromotion,
+      thinking,
+      connectionError,
+      humansTurn,
+      outcome.over,
+    ],
   )
 
   const choosePromotion = useCallback(
@@ -116,6 +179,14 @@ export function useGame(opts: UseGameOptions): UseGame {
     setRetryNonce((n) => n + 1)
   }, [])
 
+  const resign = useCallback(() => {
+    if (state.status.isGameOver) return
+    generation.current += 1
+    abortRef.current?.abort()
+    setThinking(false)
+    setResigned(true)
+  }, [state.status.isGameOver])
+
   const newGame = useCallback(() => {
     generation.current += 1
     abortRef.current?.abort()
@@ -125,12 +196,16 @@ export function useGame(opts: UseGameOptions): UseGame {
     setThinking(false)
     setConnectionError(null)
     setLastMoveFallback(false)
-  }, [])
+    setResigned(false)
+    recordedRef.current = false
+    clock.reset()
+  }, [clock])
 
   // Drive the model's (Black's) turn whenever it is Black to move.
   useEffect(() => {
     if (state.turn !== 'b') return
     if (state.status.isGameOver) return
+    if (resigned || timedOut) return
     if (connectionError) return
 
     const myGen = generation.current
@@ -195,7 +270,25 @@ export function useGame(opts: UseGameOptions): UseGame {
     elo,
     selectMoveFn,
     retryDelays,
+    resigned,
+    timedOut,
   ])
+
+  // Record each finished game exactly once (guarded so re-renders don't
+  // double-write). Reset on newGame via recordedRef.
+  useEffect(() => {
+    if (!outcome.over || recordedRef.current) return
+    recordedRef.current = true
+    appendGame({
+      id: crypto.randomUUID(),
+      endedAt: Date.now(),
+      opponent: opts.opponentName?.trim() || model.trim() || 'Local model',
+      elo,
+      plies: state.history.length,
+      result: outcome.result as MatchResult,
+      reason: outcome.reason as EndReason,
+    })
+  }, [outcome, opts.opponentName, model, elo, state.history.length])
 
   // Ignore any in-flight result after unmount.
   useEffect(
@@ -213,10 +306,14 @@ export function useGame(opts: UseGameOptions): UseGame {
     thinking,
     connectionError,
     lastMoveFallback,
+    whiteClock: formatClock(clock.whiteMs),
+    blackClock: formatClock(clock.blackMs),
+    outcome,
     onSquareClick,
     choosePromotion,
     cancelPromotion,
     retryModelTurn,
+    resign,
     newGame,
   }
 }

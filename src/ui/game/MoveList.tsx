@@ -1,13 +1,36 @@
+import { useEffect, useState } from 'react'
 import { useI18n } from '../app/i18n'
 
 export function MoveList({
   history,
   onNewGame,
+  onResign,
+  gameOver,
 }: {
   history: string[]
   onNewGame: () => void
+  onResign?: () => void
+  gameOver?: boolean
 }) {
   const { t, lang } = useI18n()
+  const [confirming, setConfirming] = useState(false)
+  const canResign = !!onResign && !gameOver
+  // Drop the confirm state whenever resigning stops being available
+  // (game ended, or a new game reset the props).
+  useEffect(() => {
+    if (!canResign) setConfirming(false)
+  }, [canResign])
+
+  const handleResign = () => {
+    if (!onResign) return
+    if (confirming) {
+      setConfirming(false)
+      onResign()
+    } else {
+      setConfirming(true)
+    }
+  }
+
   const empty = lang === 'ru' ? 'Сделайте первый ход' : 'Make the first move'
   const lastPly = history.length - 1
   const rows = []
@@ -24,8 +47,13 @@ export function MoveList({
         <button type="button" className="btn btn-ghost" disabled>
           {t('offerdraw')}
         </button>
-        <button type="button" className="btn btn-secondary" disabled>
-          {t('resign')}
+        <button
+          type="button"
+          className="btn btn-secondary"
+          disabled={!canResign}
+          onClick={handleResign}
+        >
+          {confirming ? t('resign_confirm') : t('resign')}
         </button>
       </div>
       <div className="moves">
