@@ -47,9 +47,12 @@ added without touching the engine.
 **Match history, persistence, and clocks are real.** Each finished game
 (checkmate / draw / timeout / resignation) is recorded to a persistent
 match-history list (stored in the browser via `localStorage`) and shown on the
-history screen — no more demo data. The clocks are fixed at 10:00 per side; the
-model's clock is frozen while it thinks, so it never flags on slow hardware, and
-running White out of time is a loss.
+history screen — no more demo data. Both clocks start at 10:00 per side and are
+live and symmetric: the model's clock ticks down while it thinks and it can
+flag — running the model out of time wins on time, just as running White out of
+time loses. The model's clock pauses only on infrastructure (the
+connection-error banner and the automatic retry backoff), so a server hiccup
+doesn't burn its time.
 
 **Hints are real too.** On your turn the hint panel asks the connected model for
 one recommended move and reveals it progressively — which piece to move, the
