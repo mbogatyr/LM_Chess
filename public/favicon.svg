@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="NeuroChess knight">
+  <rect width="32" height="32" rx="7" fill="#161225" />
+  <text
+    x="16"
+    y="17"
+    text-anchor="middle"
+    dominant-baseline="central"
+    font-size="24"
+    fill="#c9b8ff"
+    font-family="'Apple Symbols','Segoe UI Symbol','Noto Sans Symbols 2',sans-serif"
+  >♞</text>
+</svg>
