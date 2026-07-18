@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '../app/i18n'
 import type { useConnection } from '../useConnection'
 import { Steps } from './Steps'
@@ -15,7 +15,12 @@ export function OnboardingConnect({
   const { t } = useI18n()
   const [url, setUrl] = useState(conn.state.baseUrl)
   const { phase, error } = conn.state
-  const connected = phase === 'connected'
+
+  // Auto-advance to model selection as soon as the server responds — the
+  // models are already fetched by the time the phase reaches 'connected'.
+  useEffect(() => {
+    if (phase === 'connected') onConnected()
+  }, [phase, onConnected])
 
   return (
     <div className="onb">
@@ -46,12 +51,6 @@ export function OnboardingConnect({
               {t('connect_checking')}
             </div>
           )}
-          {connected && (
-            <div className="pill">
-              <span className="live" />
-              {t('connect_ok')}
-            </div>
-          )}
           {phase === 'error' && error && <p role="alert">{error}</p>}
         </div>
         <div className="onb-actions">
@@ -59,9 +58,9 @@ export function OnboardingConnect({
             type="button"
             className="btn btn-primary"
             disabled={phase === 'connecting'}
-            onClick={() => (connected ? onConnected() : conn.connect(url))}
+            onClick={() => conn.connect(url)}
           >
-            {connected ? t('connect_next') : t('connect_check')}
+            {t('connect_check')}
           </button>
         </div>
         <p className="foot-note">{t('connect_hint')}</p>
