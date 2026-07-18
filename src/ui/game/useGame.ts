@@ -141,7 +141,9 @@ export function useGame(opts: UseGameOptions): UseGame {
       }
       const [r, c] = nameToRC(sq)
       const piece = state.board[r][c]
-      setSelected(piece && piece.color === state.turn ? sq : null)
+      // Re-clicking the selected piece deselects it (turns off highlighting).
+      const own = piece && piece.color === state.turn
+      setSelected(own && sq !== selected ? sq : null)
     },
     [
       state,
