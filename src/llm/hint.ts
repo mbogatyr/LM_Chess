@@ -9,7 +9,11 @@ import type { GameState, PieceType, SquareName } from '../engine/types'
 
 export const MAX_HINT_ATTEMPTS = 3
 const TEMPERATURE = 0.4
-const MAX_TOKENS = 96
+// Generous budget: reasoning models (e.g. gemma-4-e4b) spend most of their
+// output on hidden reasoning and only then emit the "Move:/Idea:" answer in
+// `content`. A small cap leaves `content` empty (the whole budget goes to
+// reasoning), so the hint never parses. Give room to finish thinking AND answer.
+const MAX_TOKENS = 512
 const IDEA_MAX = 240
 
 export type Hint = {
