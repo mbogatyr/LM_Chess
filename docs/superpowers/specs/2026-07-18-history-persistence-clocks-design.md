@@ -147,7 +147,7 @@ useChessClock(opts: {
 ### 4. `useGame` extensions
 
 - Compose `useChessClock`. `running = turn === 'w' && !outcome.over &&
-  !pendingPromotion && !connectionError`. (On White's turn `thinking` is already
+!pendingPromotion && !connectionError`. (On White's turn `thinking` is already
   false; Black's window is fully covered by `thinking`, so Black stays frozen.)
 - New state `resigned: boolean`; consume the clock's `flagged`.
 - Derive `outcome: { over: boolean; result: GameResult | null; reason: EndReason | null }`
@@ -173,7 +173,7 @@ useChessClock(opts: {
 - `statusView` gains two cases driven by `outcome.reason`:
   - `timeout` → e.g. «Поражение — время» / "Loss — time".
   - `resignation` → e.g. «Поражение — сдача» / "Loss — resigned".
-  Existing mate/draw/turn/check text is unchanged.
+    Existing mate/draw/turn/check text is unchanged.
 - Pass `onResign` into `MoveList` and enable the Resign button while the game is live.
   **Two-step inline confirm:** first click flips the button label to a confirm state
   («Точно?» / "Sure?"); a second click within that state resigns; clicking elsewhere
@@ -188,7 +188,7 @@ useChessClock(opts: {
 - **Empty state:** when `games.length === 0`, render a friendly panel (localized)
   instead of the table; the four stat tiles show `0` / `—`.
 - Format `endedAt` with `toLocaleDateString('ru-RU' | 'en-US', { day: 'numeric',
-  month: 'short' })`. Length column shows full moves (`Math.ceil(plies / 2)`). Result
+month: 'short' })`. Length column shows full moves (`Math.ceil(plies / 2)`). Result
   badge reuses the existing `res win|loss|draw` styling and `t(result)` labels.
 
 ### 7. i18n (`src/ui/app/i18n.tsx`)

@@ -48,10 +48,12 @@
 ### Task 1: Persistence module (`gameHistory.ts`)
 
 **Files:**
+
 - Create: `src/ui/history/gameHistory.ts`
 - Test: `src/ui/history/gameHistory.test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing (leaf module; uses `localStorage`).
 - Produces:
   - `type MatchResult = 'win' | 'loss' | 'draw'`
@@ -235,10 +237,12 @@ git commit -m "feat: game-history persistence module (records + stats)"
 ### Task 2: Clock hook (`useChessClock.ts`)
 
 **Files:**
+
 - Create: `src/ui/game/useChessClock.ts`
 - Test: `src/ui/game/useChessClock.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Color` from `../../engine/types`.
 - Produces:
   - `formatClock(ms: number): string` — `mm:ss`, negatives clamp to `0:00`.
@@ -389,10 +393,12 @@ git commit -m "feat: useChessClock hook (per-side countdown, flag, reset)"
 ### Task 3: i18n keys for resign/timeout/empty-history
 
 **Files:**
+
 - Modify: `src/ui/app/i18n.tsx` (add 4 keys in both `STRINGS.ru` and `STRINGS.en`)
 - Modify: `src/ui/app/i18n.test.tsx` (parity assertion)
 
 **Interfaces:**
+
 - Produces new `TKey`s: `resign_confirm`, `st_time_loss`, `st_resign_loss`, `lb_empty`.
 
 - [ ] **Step 1: Write the failing test**
@@ -456,10 +462,12 @@ git commit -m "feat: i18n keys for resign confirm, timeout/resign status, empty 
 ### Task 4: Wire clock, resignation, outcome & recording into `useGame`
 
 **Files:**
+
 - Modify: `src/ui/game/useGame.ts`
 - Modify: `src/ui/game/useGame.test.ts`
 
 **Interfaces:**
+
 - Consumes: `useChessClock`, `formatClock` (Task 2); `appendGame`, `MatchResult`, `EndReason` (Task 1).
 - Produces (additions to `UseGameOptions`): `initialClockMs?: number` (test seam, default 600 000), `opponentName?: string`.
 - Produces (additions to `UseGame` return):
@@ -522,9 +530,7 @@ test('White flagging on time is a recorded loss', async () => {
   // tiny clock so White flags almost immediately
   const o = opts({ initialClockMs: 200 })
   const { result } = renderHook(() => useGame(o))
-  await waitFor(() =>
-    expect(result.current.outcome.reason).toBe('timeout'),
-  )
+  await waitFor(() => expect(result.current.outcome.reason).toBe('timeout'))
   expect(result.current.outcome.result).toBe('loss')
   await waitFor(() => expect(loadGames()).toHaveLength(1))
   expect(loadGames()[0].reason).toBe('timeout')
@@ -615,107 +621,107 @@ export type UseGame = {
 Inside `useGame`, add resign state and the clock **before** `onSquareClick` (order matters — `onSquareClick` and the model effect reference `resigned`/`timedOut`). Add after the existing `const [retryNonce, setRetryNonce] = useState(0)` line:
 
 ```ts
-  const [resigned, setResigned] = useState(false)
-  const recordedRef = useRef(false)
+const [resigned, setResigned] = useState(false)
+const recordedRef = useRef(false)
 
-  // Clock runs only on White's live turn. Black is frozen (its whole turn is
-  // covered by `thinking`), so the model never flags on slow hardware.
-  const engineOver = state.status.isGameOver
-  const clockRunning =
-    state.turn === 'w' &&
-    !engineOver &&
-    !resigned &&
-    !pendingPromotion &&
-    !connectionError
-  const clock = useChessClock({
-    turn: state.turn,
-    running: clockRunning,
-    initialMs: opts.initialClockMs,
-  })
-  const timedOut = clock.flagged === 'w'
+// Clock runs only on White's live turn. Black is frozen (its whole turn is
+// covered by `thinking`), so the model never flags on slow hardware.
+const engineOver = state.status.isGameOver
+const clockRunning =
+  state.turn === 'w' &&
+  !engineOver &&
+  !resigned &&
+  !pendingPromotion &&
+  !connectionError
+const clock = useChessClock({
+  turn: state.turn,
+  running: clockRunning,
+  initialMs: opts.initialClockMs,
+})
+const timedOut = clock.flagged === 'w'
 
-  const outcome = useMemo((): UseGame['outcome'] => {
-    const s = state.status
-    if (s.isCheckmate) {
-      return {
-        over: true,
-        result: s.result === 'white' ? 'win' : 'loss',
-        reason: 'checkmate',
-      }
+const outcome = useMemo((): UseGame['outcome'] => {
+  const s = state.status
+  if (s.isCheckmate) {
+    return {
+      over: true,
+      result: s.result === 'white' ? 'win' : 'loss',
+      reason: 'checkmate',
     }
-    if (s.isDraw) {
-      return {
-        over: true,
-        result: 'draw',
-        reason: s.drawReason ?? 'insufficient-material',
-      }
+  }
+  if (s.isDraw) {
+    return {
+      over: true,
+      result: 'draw',
+      reason: s.drawReason ?? 'insufficient-material',
     }
-    if (resigned) return { over: true, result: 'loss', reason: 'resignation' }
-    if (timedOut) return { over: true, result: 'loss', reason: 'timeout' }
-    return { over: false, result: null, reason: null }
-  }, [state.status, resigned, timedOut])
+  }
+  if (resigned) return { over: true, result: 'loss', reason: 'resignation' }
+  if (timedOut) return { over: true, result: 'loss', reason: 'timeout' }
+  return { over: false, result: null, reason: null }
+}, [state.status, resigned, timedOut])
 ```
 
 Add `if (outcome.over) return` to the top of `onSquareClick` (replacing the existing `if (state.status.isGameOver) return` line so timeout/resignation also block input), and add `outcome.over` to its dependency array:
 
 ```ts
-  const onSquareClick = useCallback(
-    (sq: SquareName) => {
-      if (pendingPromotion) return
-      if (thinking || connectionError) return
-      if (!humansTurn) return
-      if (outcome.over) return
-      // ...unchanged body...
-    },
-    [
-      state,
-      selected,
-      pendingPromotion,
-      thinking,
-      connectionError,
-      humansTurn,
-      outcome.over,
-    ],
-  )
+const onSquareClick = useCallback(
+  (sq: SquareName) => {
+    if (pendingPromotion) return
+    if (thinking || connectionError) return
+    if (!humansTurn) return
+    if (outcome.over) return
+    // ...unchanged body...
+  },
+  [
+    state,
+    selected,
+    pendingPromotion,
+    thinking,
+    connectionError,
+    humansTurn,
+    outcome.over,
+  ],
+)
 ```
 
 Add the `resign` callback near `retryModelTurn`:
 
 ```ts
-  const resign = useCallback(() => {
-    if (state.status.isGameOver) return
-    generation.current += 1
-    abortRef.current?.abort()
-    setThinking(false)
-    setResigned(true)
-  }, [state.status.isGameOver])
+const resign = useCallback(() => {
+  if (state.status.isGameOver) return
+  generation.current += 1
+  abortRef.current?.abort()
+  setThinking(false)
+  setResigned(true)
+}, [state.status.isGameOver])
 ```
 
 Extend `newGame` to reset the new state:
 
 ```ts
-  const newGame = useCallback(() => {
-    generation.current += 1
-    abortRef.current?.abort()
-    setState(engineNewGame())
-    setSelected(null)
-    setPendingPromotion(null)
-    setThinking(false)
-    setConnectionError(null)
-    setLastMoveFallback(false)
-    setResigned(false)
-    recordedRef.current = false
-    clock.reset()
-  }, [clock])
+const newGame = useCallback(() => {
+  generation.current += 1
+  abortRef.current?.abort()
+  setState(engineNewGame())
+  setSelected(null)
+  setPendingPromotion(null)
+  setThinking(false)
+  setConnectionError(null)
+  setLastMoveFallback(false)
+  setResigned(false)
+  recordedRef.current = false
+  clock.reset()
+}, [clock])
 ```
 
 Guard the model-turn effect against resignation/timeout and add them to its deps. Change the guard block at the top of the effect to:
 
 ```ts
-    if (state.turn !== 'b') return
-    if (state.status.isGameOver) return
-    if (resigned || timedOut) return
-    if (connectionError) return
+if (state.turn !== 'b') return
+if (state.status.isGameOver) return
+if (resigned || timedOut) return
+if (connectionError) return
 ```
 
 and extend that effect's dependency array to include `resigned` and `timedOut`:
@@ -738,44 +744,44 @@ and extend that effect's dependency array to include `resigned` and `timedOut`:
 Add the recording effect (place it after the model-turn effect, before the unmount effect):
 
 ```ts
-  // Record each finished game exactly once (guarded so re-renders don't
-  // double-write). Reset on newGame via recordedRef.
-  useEffect(() => {
-    if (!outcome.over || recordedRef.current) return
-    recordedRef.current = true
-    appendGame({
-      id: crypto.randomUUID(),
-      endedAt: Date.now(),
-      opponent: opts.opponentName?.trim() || model.trim() || 'Local model',
-      elo,
-      plies: state.history.length,
-      result: outcome.result as MatchResult,
-      reason: outcome.reason as EndReason,
-    })
-  }, [outcome, opts.opponentName, model, elo, state.history.length])
+// Record each finished game exactly once (guarded so re-renders don't
+// double-write). Reset on newGame via recordedRef.
+useEffect(() => {
+  if (!outcome.over || recordedRef.current) return
+  recordedRef.current = true
+  appendGame({
+    id: crypto.randomUUID(),
+    endedAt: Date.now(),
+    opponent: opts.opponentName?.trim() || model.trim() || 'Local model',
+    elo,
+    plies: state.history.length,
+    result: outcome.result as MatchResult,
+    reason: outcome.reason as EndReason,
+  })
+}, [outcome, opts.opponentName, model, elo, state.history.length])
 ```
 
 Extend the returned object with the new fields:
 
 ```ts
-  return {
-    state,
-    selected,
-    legalTargets,
-    pendingPromotion,
-    thinking,
-    connectionError,
-    lastMoveFallback,
-    whiteClock: formatClock(clock.whiteMs),
-    blackClock: formatClock(clock.blackMs),
-    outcome,
-    onSquareClick,
-    choosePromotion,
-    cancelPromotion,
-    retryModelTurn,
-    resign,
-    newGame,
-  }
+return {
+  state,
+  selected,
+  legalTargets,
+  pendingPromotion,
+  thinking,
+  connectionError,
+  lastMoveFallback,
+  whiteClock: formatClock(clock.whiteMs),
+  blackClock: formatClock(clock.blackMs),
+  outcome,
+  onSquareClick,
+  choosePromotion,
+  cancelPromotion,
+  retryModelTurn,
+  resign,
+  newGame,
+}
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -800,10 +806,12 @@ git commit -m "feat: clocks, resignation, outcome and game recording in useGame"
 ### Task 5: Enable the Resign button with two-step confirm (`MoveList`)
 
 **Files:**
+
 - Modify: `src/ui/game/MoveList.tsx`
 - Modify: `src/ui/game/MoveList.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `resign` / `resign_confirm` i18n keys (Task 3).
 - Produces (new `MoveList` props): `onResign?: () => void`, `gameOver?: boolean`. The button is disabled unless `onResign` is provided and `!gameOver`. First click shows `resign_confirm`; second click within the confirm state calls `onResign`.
 
@@ -814,7 +822,9 @@ git commit -m "feat: clocks, resignation, outcome and game recording in useGame"
 ```tsx
 test('Resign uses a two-step confirm and fires onResign on the second click', async () => {
   const onResign = vi.fn()
-  render(wrap(<MoveList history={[]} onNewGame={() => {}} onResign={onResign} />))
+  render(
+    wrap(<MoveList history={[]} onNewGame={() => {}} onResign={onResign} />),
+  )
   await userEvent.click(screen.getByRole('button', { name: 'Сдаться' }))
   expect(onResign).not.toHaveBeenCalled()
   await userEvent.click(screen.getByRole('button', { name: 'Точно?' }))
@@ -824,7 +834,12 @@ test('Resign uses a two-step confirm and fires onResign on the second click', as
 test('Resign is disabled when the game is over', () => {
   render(
     wrap(
-      <MoveList history={[]} onNewGame={() => {}} onResign={() => {}} gameOver />,
+      <MoveList
+        history={[]}
+        onNewGame={() => {}}
+        onResign={() => {}}
+        gameOver
+      />,
     ),
   )
   expect(screen.getByRole('button', { name: 'Сдаться' })).toBeDisabled()
@@ -947,10 +962,12 @@ git commit -m "feat: enable Resign button with two-step confirm"
 ### Task 6: Wire real clocks, resign & end-state status into `GameScreen`
 
 **Files:**
+
 - Modify: `src/ui/game/GameScreen.tsx`
 - Modify: `src/ui/game/GameScreen.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `useGame` fields `whiteClock`/`blackClock`/`outcome`/`resign` (Task 4); `MoveList` props `onResign`/`gameOver` (Task 5); i18n `st_time_loss`/`st_resign_loss` (Task 3).
 - Produces: passes `opponentName` into `useGame`; renders real clocks + status text; enables Resign.
 
@@ -998,12 +1015,12 @@ Expected: FAIL — only the hardcoded status renders; Resign is disabled; clocks
 
 - [ ] **Step 3: Implement the `GameScreen` changes**
 
-`GameScreen.tsx` needs **no new imports** — all the wiring uses `useGame` fields and the already-imported `MoveList`/`PlayerStrip`/`useI18n`/`TKey`. (`loadGames` is only imported by the *test* file, per Step 1.)
+`GameScreen.tsx` needs **no new imports** — all the wiring uses `useGame` fields and the already-imported `MoveList`/`PlayerStrip`/`useI18n`/`TKey`. (`loadGames` is only imported by the _test_ file, per Step 1.)
 
 Pass `opponentName` into `useGame`:
 
 ```tsx
-  const g = useGame({ baseUrl, model, elo, selectMoveFn, opponentName })
+const g = useGame({ baseUrl, model, elo, selectMoveFn, opponentName })
 ```
 
 Update `statusView` to accept the outcome and handle timeout/resignation. Change its signature and add the two cases after the mate/draw checks and before the turn fallback:
@@ -1049,54 +1066,54 @@ function statusView(
 Update the call site:
 
 ```tsx
-  const status = statusView(state, t, g.outcome)
+const status = statusView(state, t, g.outcome)
 ```
 
 Use real clocks and `active` on both strips (replace the two hardcoded `clock="10:00"`), gating `active` on `!g.outcome.over`:
 
 ```tsx
-        <PlayerStrip
-          variant="opp"
-          name={opponentName}
-          sub={`${t('opp')} · ELO ${elo}`}
-          clock={g.blackClock}
-          active={state.turn === 'b' && !g.outcome.over}
-        />
+<PlayerStrip
+  variant="opp"
+  name={opponentName}
+  sub={`${t('opp')} · ELO ${elo}`}
+  clock={g.blackClock}
+  active={state.turn === 'b' && !g.outcome.over}
+/>
 ```
 
 ```tsx
-        <PlayerStrip
-          variant="you"
-          name={t('you')}
-          sub={`ELO 1280 · ${t('yoursub')}`}
-          clock={g.whiteClock}
-          active={state.turn === 'w' && !g.outcome.over}
-        />
+<PlayerStrip
+  variant="you"
+  name={t('you')}
+  sub={`ELO 1280 · ${t('yoursub')}`}
+  clock={g.whiteClock}
+  active={state.turn === 'w' && !g.outcome.over}
+/>
 ```
 
 Wire the status "small" line so it no longer shows a "your move" hint once the game is over. The existing ternary already guards `state.status.isGameOver`; change that guard to `g.outcome.over`:
 
 ```tsx
-            <small>
-              {g.outcome.over
-                ? ''
-                : g.thinking
-                  ? t('theirsub')
-                  : status.theirs
-                    ? t('theirmove')
-                    : t('yourmove')}
-            </small>
+<small>
+  {g.outcome.over
+    ? ''
+    : g.thinking
+      ? t('theirsub')
+      : status.theirs
+        ? t('theirmove')
+        : t('yourmove')}
+</small>
 ```
 
 Pass resign wiring into `MoveList`:
 
 ```tsx
-        <MoveList
-          history={state.history}
-          onNewGame={g.newGame}
-          onResign={g.resign}
-          gameOver={g.outcome.over}
-        />
+<MoveList
+  history={state.history}
+  onNewGame={g.newGame}
+  onResign={g.resign}
+  gameOver={g.outcome.over}
+/>
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -1116,12 +1133,14 @@ git commit -m "feat: real clocks, resign wiring and end-state status in GameScre
 ### Task 7: Real History screen + remove demo history
 
 **Files:**
+
 - Modify: `src/ui/history/HistoryScreen.tsx`
 - Modify: `src/ui/history/HistoryScreen.test.tsx`
 - Modify: `src/ui/app/demoData.ts`
 - Modify: `src/ui/app/demoData.test.ts`
 
 **Interfaces:**
+
 - Consumes: `loadGames`, `gameStats`, `GameRecord` (Task 1); i18n `lb_empty` (Task 3); existing `res`/`win`/`loss`/`draw` styling + keys.
 - Produces: History screen reads real records; `demoData.ts` no longer exports history symbols.
 
@@ -1159,9 +1178,7 @@ afterEach(() => localStorage.clear())
 
 test('shows an empty state when no games are stored', () => {
   renderHistory()
-  expect(
-    screen.getByText(/Пока нет партий/),
-  ).toBeInTheDocument()
+  expect(screen.getByText(/Пока нет партий/)).toBeInTheDocument()
   expect(screen.queryByRole('table')).not.toBeInTheDocument()
 })
 
