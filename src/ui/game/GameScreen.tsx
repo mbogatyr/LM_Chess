@@ -8,6 +8,7 @@ import { PlayerStrip } from './PlayerStrip'
 import { MoveList } from './MoveList'
 import { PromotionPicker } from './PromotionPicker'
 import { useGame } from './useGame'
+import { VictoryOverlay } from './VictoryOverlay'
 import { selectMove } from '../../llm/selectMove'
 import { useHint } from './useHint'
 import type { getHint } from '../../llm/hint'
@@ -132,6 +133,7 @@ export function GameScreen({
               onCancel={g.cancelPromotion}
             />
           )}
+          {g.outcome.result === 'win' && <VictoryOverlay />}
         </div>
         <PlayerStrip
           variant="you"

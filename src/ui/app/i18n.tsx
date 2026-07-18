@@ -138,6 +138,8 @@ export const STRINGS = {
     win: 'Победа',
     loss: 'Поражение',
     draw: 'Ничья',
+    sound_on: 'Звук включён — выключить',
+    sound_off: 'Звук выключен — включить',
   },
   en: {
     subtitle: 'Chess against a local model',
@@ -262,6 +264,8 @@ export const STRINGS = {
     win: 'Win',
     loss: 'Loss',
     draw: 'Draw',
+    sound_on: 'Sound on — turn off',
+    sound_off: 'Sound off — turn on',
   },
 } as const
 
