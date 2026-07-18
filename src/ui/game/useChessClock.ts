@@ -14,7 +14,7 @@ export function formatClock(ms: number): string {
 export type UseChessClock = {
   whiteMs: number
   blackMs: number
-  flagged: 'w' | null
+  flagged: 'w' | 'b' | null
   reset: () => void
 }
 
@@ -52,6 +52,7 @@ export function useChessClock(opts: {
     return () => clearInterval(id)
   }, [running, turn])
 
-  const flagged: 'w' | null = whiteMs <= 0 ? 'w' : null
+  const flagged: 'w' | 'b' | null =
+    whiteMs <= 0 ? 'w' : blackMs <= 0 ? 'b' : null
   return { whiteMs, blackMs, flagged, reset }
 }

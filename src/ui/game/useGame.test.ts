@@ -216,6 +216,71 @@ test('White flagging on time is a recorded loss', async () => {
   expect(loadGames()[0].reason).toBe('timeout')
 })
 
+test('the model flagging on time is a win for the human, recorded once', async () => {
+  // idle opponent keeps Black "thinking"; a tiny clock flags it quickly
+  const o = opts({ selectMoveFn: idleOpponent, initialClockMs: 300 })
+  const { result } = renderHook(() => useGame(o))
+  act(() => result.current.onSquareClick('e2'))
+  act(() => result.current.onSquareClick('e4'))
+  // Black's clock ticks down while thinking and flags → the human wins
+  await waitFor(() => expect(result.current.outcome.over).toBe(true), {
+    timeout: 2000,
+  })
+  expect(result.current.outcome.result).toBe('win')
+  expect(result.current.outcome.reason).toBe('timeout')
+  expect(result.current.thinking).toBe(false)
+  expect(result.current.blackClock).toBe('0:00')
+  await waitFor(() => expect(loadGames()).toHaveLength(1))
+  expect(loadGames()[0].result).toBe('win')
+  expect(loadGames()[0].reason).toBe('timeout')
+})
+
+test('the model clock pauses while a connection error is shown', async () => {
+  const failing: typeof selectMove = () =>
+    Promise.reject(new LMStudioError('network', 'down'))
+  const o = opts({
+    selectMoveFn: failing,
+    retryDelays: [],
+    initialClockMs: 300,
+  })
+  const { result } = renderHook(() => useGame(o))
+  act(() => result.current.onSquareClick('e2'))
+  act(() => result.current.onSquareClick('e4'))
+  await waitFor(() => expect(result.current.connectionError).toBe('down'))
+  // wait past the 300ms budget: a paused clock means no flag, game not over
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 450))
+  })
+  expect(result.current.outcome.over).toBe(false)
+})
+
+test('the model clock pauses during the auto-retry backoff', async () => {
+  const reply = scriptedOpponent(['e5'])
+  let first = true
+  const flaky: typeof selectMove = (p) => {
+    if (first) {
+      first = false
+      return Promise.reject(new LMStudioError('network', 'down'))
+    }
+    return reply(p)
+  }
+  // 400ms backoff > 300ms budget: if the clock ticked during backoff Black
+  // would flag. It pauses, so the retry lands and Black plays e5.
+  const o = opts({
+    selectMoveFn: flaky,
+    retryDelays: [400],
+    initialClockMs: 300,
+  })
+  const { result } = renderHook(() => useGame(o))
+  act(() => result.current.onSquareClick('e2'))
+  act(() => result.current.onSquareClick('e4'))
+  await waitFor(
+    () => expect(result.current.state.history).toEqual(['e4', 'e5']),
+    { timeout: 2000 },
+  )
+  expect(result.current.outcome.over).toBe(false)
+})
+
 test('starting a new game after finishing does not double-record', async () => {
   const o = opts()
   const { result } = renderHook(() => useGame(o))

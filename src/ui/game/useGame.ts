@@ -64,6 +64,9 @@ export function useGame(opts: UseGameOptions): UseGame {
   const [lastMoveFallback, setLastMoveFallback] = useState(false)
   const [retryNonce, setRetryNonce] = useState(0)
   const [resigned, setResigned] = useState(false)
+  // True only during the auto-retry backoff sleep — pauses the model's clock
+  // so an infrastructure hiccup doesn't burn its time.
+  const [retrying, setRetrying] = useState(false)
   const recordedRef = useRef(false)
 
   // Bumped on newGame / unmount so stale async results are ignored.
@@ -72,21 +75,30 @@ export function useGame(opts: UseGameOptions): UseGame {
 
   const humansTurn = state.turn === 'w'
 
-  // Clock runs only on White's live turn. Black is frozen (its whole turn is
-  // covered by `thinking`), so the model never flags on slow hardware.
+  // Both clocks are live and symmetric. White ticks on its live turn; Black
+  // (the model) ticks while it is genuinely thinking — but pauses on
+  // infrastructure (the connection-error banner and the retry backoff) so a
+  // server hiccup doesn't burn its time. The model can flag → the human wins.
   const engineOver = state.status.isGameOver
-  const clockRunning =
+  const whiteRunning =
     state.turn === 'w' &&
     !engineOver &&
     !resigned &&
     !pendingPromotion &&
     !connectionError
+  const blackRunning =
+    state.turn === 'b' &&
+    thinking &&
+    !retrying &&
+    !engineOver &&
+    !resigned &&
+    !connectionError
   const clock = useChessClock({
     turn: state.turn,
-    running: clockRunning,
+    running: whiteRunning || blackRunning,
     initialMs: opts.initialClockMs,
   })
-  const timedOut = clock.flagged === 'w'
+  const flagged = clock.flagged
 
   const outcome = useMemo((): UseGame['outcome'] => {
     const s = state.status
@@ -105,9 +117,11 @@ export function useGame(opts: UseGameOptions): UseGame {
       }
     }
     if (resigned) return { over: true, result: 'loss', reason: 'resignation' }
-    if (timedOut) return { over: true, result: 'loss', reason: 'timeout' }
+    if (flagged === 'w')
+      return { over: true, result: 'loss', reason: 'timeout' }
+    if (flagged === 'b') return { over: true, result: 'win', reason: 'timeout' }
     return { over: false, result: null, reason: null }
-  }, [state.status, resigned, timedOut])
+  }, [state.status, resigned, flagged])
 
   const legalTargets = useMemo<LegalTarget[]>(() => {
     if (!selected) return []
@@ -197,15 +211,26 @@ export function useGame(opts: UseGameOptions): UseGame {
     setConnectionError(null)
     setLastMoveFallback(false)
     setResigned(false)
+    setRetrying(false)
     recordedRef.current = false
     clock.reset()
   }, [clock])
+
+  // Stop the model's turn the instant its clock flags: abort the in-flight
+  // request and drop `thinking` so the game settles as a timeout win.
+  useEffect(() => {
+    if (flagged !== 'b') return
+    generation.current += 1
+    abortRef.current?.abort()
+    setThinking(false)
+    setRetrying(false)
+  }, [flagged])
 
   // Drive the model's (Black's) turn whenever it is Black to move.
   useEffect(() => {
     if (state.turn !== 'b') return
     if (state.status.isGameOver) return
-    if (resigned || timedOut) return
+    if (resigned || flagged) return
     if (connectionError) return
 
     const myGen = generation.current
@@ -245,7 +270,9 @@ export function useGame(opts: UseGameOptions): UseGame {
             throw err
           }
           if (attempt < retryDelays.length) {
+            setRetrying(true)
             await sleep(retryDelays[attempt])
+            setRetrying(false)
             if (stale()) return
             continue
           }
@@ -271,7 +298,7 @@ export function useGame(opts: UseGameOptions): UseGame {
     selectMoveFn,
     retryDelays,
     resigned,
-    timedOut,
+    flagged,
   ])
 
   // Record each finished game exactly once (guarded so re-renders don't
