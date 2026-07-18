@@ -39,6 +39,16 @@ test("White flags when White's time reaches zero", () => {
   expect(result.current.flagged).toBe('w')
 })
 
+test("Black flags when Black's time reaches zero", () => {
+  const { result } = renderHook(() =>
+    useChessClock({ turn: 'b', running: true, initialMs: 500 }),
+  )
+  expect(result.current.flagged).toBeNull()
+  act(() => vi.advanceTimersByTime(1_000))
+  expect(result.current.blackMs).toBe(0)
+  expect(result.current.flagged).toBe('b')
+})
+
 test('reset restores both clocks and clears the flag', () => {
   const { result } = renderHook(() =>
     useChessClock({ turn: 'w', running: true, initialMs: 500 }),
