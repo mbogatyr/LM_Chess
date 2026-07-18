@@ -112,3 +112,26 @@ test('HintUnavailableError and LMStudioError set errorKind', async () => {
   act(() => conn.result.current.reveal(1))
   await waitFor(() => expect(conn.result.current.errorKind).toBe('connection'))
 })
+
+test('a hint resolving after a position change is discarded', async () => {
+  let resolveFn: (h: Hint) => void = () => {}
+  const getHintFn = vi.fn(
+    () =>
+      new Promise<Hint>((r) => {
+        resolveFn = r
+      }),
+  ) as unknown as typeof getHint
+  const o = base({ getHintFn })
+  const { result, rerender } = renderHook((p) => useHint(p), {
+    initialProps: o,
+  })
+  act(() => result.current.reveal(1)) // fetch starts, promise stays pending
+  // position changes while the fetch is still in flight
+  rerender(base({ state: move(newGame(), 'e4')!, getHintFn }))
+  await act(async () => {
+    resolveFn(HINT) // the stale fetch resolves now
+    await Promise.resolve()
+  })
+  expect(result.current.hint).toBeNull()
+  expect(result.current.level).toBe(0)
+})
