@@ -10,6 +10,7 @@ export function Board({
   legalTargets,
   lastMove,
   checkSquare,
+  hintMove,
   onSquareClick,
   boardStyle,
   pieceStyle,
@@ -19,6 +20,7 @@ export function Board({
   legalTargets: LegalTarget[]
   lastMove: { from: SquareName; to: SquareName } | null
   checkSquare: SquareName | null
+  hintMove?: { from: SquareName; to: SquareName } | null
   onSquareClick: (sq: SquareName) => void
   boardStyle: BoardStyle
   pieceStyle: PieceStyle
@@ -36,6 +38,8 @@ export function Board({
             if (lastMove && (name === lastMove.from || name === lastMove.to))
               classes.push('last')
             if (name === checkSquare) classes.push('check')
+            if (hintMove && name === hintMove.from) classes.push('hint1')
+            if (hintMove && name === hintMove.to) classes.push('hint-target')
             if (target) classes.push('legal')
             return (
               <div
