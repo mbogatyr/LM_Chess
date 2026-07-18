@@ -140,7 +140,6 @@ The full Nocturne prototype (markup/copy source of truth) is vendored read-only 
 
 ## What's next (not yet built)
 
-- **Appearance feature** (deferred from Phase 3): the `◧` topbar button, the appearance sheet, and the board-palette / piece-style pickers. `appState.boardStyle`/`pieceStyle` and their setters already exist and are read by `Board`, but there is no UI to change them yet. Needs its own brainstorm → spec → plan cycle.
 - **Model clock is frozen (D₁ follow-up):** by the D₁ decision, Black's (the model's) clock is paused during thinking (to avoid flagging on slow hardware), so it sits at `10:00` and reads as non-functional. Revisit so the model's clock is meaningful (tick during inference / show elapsed thinking time / a time budget) — needs its own brainstorm; touches `useChessClock` + `useGame` clock composition.
 - **Knight favicon:** `index.html` currently has no `<link rel="icon">` (default removed, no `public/`), so the tab shows a blank icon. Add a knight (♞) SVG favicon.
 - **Victory fireworks + fanfare:** when the human wins (`outcome.result === 'win'` in `useGame`), play a celebratory fireworks animation and a short fanfare sound (fire once per win, with a mute affordance; frontend-only, mind autoplay policies).

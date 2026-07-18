@@ -58,5 +58,4 @@ The engine validates the suggestion (a hint is never a random move); if the
 model can't produce a legal hint the panel says so rather than guessing.
 
 Not yet built: a commentary-model adapter (a model that _comments on_ a played
-move) and the appearance picker (board palette / piece style). See `CLAUDE.md`
-for the full picture and what's next.
+move). See `CLAUDE.md` for the full picture and what's next.
