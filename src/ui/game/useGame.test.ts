@@ -56,6 +56,16 @@ test('clicking a black piece does not select it (white to move)', () => {
   expect(result.current.selected).toBeNull()
 })
 
+test('re-clicking the selected piece deselects it', () => {
+  const o = opts()
+  const { result } = renderHook(() => useGame(o))
+  act(() => result.current.onSquareClick('e2'))
+  expect(result.current.selected).toBe('e2')
+  act(() => result.current.onSquareClick('e2'))
+  expect(result.current.selected).toBeNull()
+  expect(result.current.legalTargets).toEqual([])
+})
+
 test('after White moves, the model plays Black and the turn returns to White', async () => {
   const o = opts({ selectMoveFn: scriptedOpponent(['e5']) })
   const { result } = renderHook(() => useGame(o))
