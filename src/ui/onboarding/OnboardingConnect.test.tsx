@@ -39,23 +39,21 @@ test('renders the connect card with the default URL', () => {
   )
 })
 
-test('successful connect shows the success pill and advances', async () => {
+test('successful connect auto-advances without a second button', async () => {
   vi.spyOn(client, 'listModels').mockResolvedValue(models)
   const { result, onConnected, view } = setup()
   await userEvent.click(
     screen.getByRole('button', { name: 'Проверить соединение' }),
   )
-  // re-render with the updated hook state
+  // re-render with the updated hook state (phase → 'connected')
   view.rerender(
     <I18nProvider>
       <OnboardingConnect conn={result.current} onConnected={onConnected} />
     </I18nProvider>,
   )
-  await waitFor(() =>
-    expect(
-      screen.getByRole('button', { name: 'Выбрать модель' }),
-    ).toBeInTheDocument(),
-  )
-  await userEvent.click(screen.getByRole('button', { name: 'Выбрать модель' }))
-  expect(onConnected).toHaveBeenCalledTimes(1)
+  await waitFor(() => expect(onConnected).toHaveBeenCalledTimes(1))
+  // no intermediate "choose a model" step
+  expect(
+    screen.queryByRole('button', { name: 'Выбрать модель' }),
+  ).not.toBeInTheDocument()
 })

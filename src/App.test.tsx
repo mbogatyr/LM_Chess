@@ -30,12 +30,9 @@ function renderApp() {
 test('connect → choose model → ELO → game', async () => {
   vi.spyOn(client, 'listModels').mockResolvedValue(models)
   renderApp()
-  // connect
+  // connect (auto-advances to model selection on success)
   await userEvent.click(
     screen.getByRole('button', { name: 'Проверить соединение' }),
-  )
-  await userEvent.click(
-    await screen.findByRole('button', { name: 'Выбрать модель' }),
   )
   // models → play the loaded model
   await userEvent.click(await screen.findByRole('button', { name: 'Играть' }))
