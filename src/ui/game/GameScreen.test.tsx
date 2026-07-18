@@ -6,6 +6,7 @@ import { GameScreen } from './GameScreen'
 import { I18nProvider } from '../app/i18n'
 import { move } from '../../engine/game'
 import type { selectMove } from '../../llm/selectMove'
+import type { getHint, Hint } from '../../llm/hint'
 import { loadGames } from '../history/gameHistory'
 
 beforeEach(() => localStorage.clear())
@@ -94,9 +95,44 @@ test('Fool’s Mate: White plays, model plays Black to mate', async () => {
   )
 })
 
-test('the hint panel is inert', () => {
+const HINT_E4: Hint = {
+  san: 'e4',
+  from: 'e2',
+  to: 'e4',
+  pieceType: 'p',
+  idea: 'Grab the centre.',
+}
+const hintReturning =
+  (h: Hint): typeof getHint =>
+  async () =>
+    h
+
+test('the hint panel is enabled on the human turn', () => {
   render(wrap(<GameScreen {...baseProps} selectMoveFn={idleOpponent} />))
-  expect(screen.getByRole('button', { name: /Фигура/ })).toBeDisabled()
+  expect(screen.getByRole('button', { name: /Фигура/ })).toBeEnabled()
+})
+
+test('revealing L3 highlights the recommended move on the board', async () => {
+  const { container } = render(
+    wrap(
+      <GameScreen
+        {...baseProps}
+        selectMoveFn={idleOpponent}
+        getHintFn={hintReturning(HINT_E4)}
+      />,
+    ),
+  )
+  await userEvent.click(screen.getByRole('button', { name: /Ход/ }))
+  await waitFor(() =>
+    expect(
+      container.querySelector('[data-sq="e2"]')!.classList.contains('hint1'),
+    ).toBe(true),
+  )
+  expect(
+    container
+      .querySelector('[data-sq="e4"]')!
+      .classList.contains('hint-target'),
+  ).toBe(true)
 })
 
 test('both clocks start frozen at 10:00', () => {

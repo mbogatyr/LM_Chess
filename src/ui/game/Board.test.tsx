@@ -70,3 +70,21 @@ test('clicking a square calls onSquareClick with its name', async () => {
   ;(container.querySelector('[data-sq="e2"]') as HTMLElement).click()
   expect(onSquareClick).toHaveBeenCalledWith('e2')
 })
+
+test('hintMove highlights the from and to squares', () => {
+  const { container } = render(
+    <Board
+      {...base}
+      board={newGame().board}
+      hintMove={{ from: 'g1', to: 'f3' }}
+    />,
+  )
+  expect(
+    container.querySelector('[data-sq="g1"]')!.classList.contains('hint1'),
+  ).toBe(true)
+  expect(
+    container
+      .querySelector('[data-sq="f3"]')!
+      .classList.contains('hint-target'),
+  ).toBe(true)
+})

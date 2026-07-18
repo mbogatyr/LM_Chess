@@ -67,3 +67,23 @@ test('has the resign/timeout/empty-history keys in both languages', () => {
     expect(STRINGS.en[k]).toBeTruthy()
   })
 })
+
+test('has the hint keys in both languages', () => {
+  const keys = [
+    'hint_piece_p',
+    'hint_piece_n',
+    'hint_piece_b',
+    'hint_piece_r',
+    'hint_piece_q',
+    'hint_piece_k',
+    'hint_l1',
+    'hint_loading',
+    'hint_error',
+    'hint_error_conn',
+    'hint_idea_empty',
+  ] as const
+  keys.forEach((k) => {
+    expect(STRINGS.ru[k]).toBeTruthy()
+    expect(STRINGS.en[k]).toBeTruthy()
+  })
+})
