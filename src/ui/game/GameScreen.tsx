@@ -23,6 +23,7 @@ function findKing(board: Square[][], color: Color): SquareName | null {
 function statusView(
   state: GameState,
   t: (k: TKey) => string,
+  outcome: { over: boolean; reason: string | null },
 ): { text: string; theirs: boolean } {
   const s = state.status
   if (s.isCheckmate) {
@@ -41,6 +42,12 @@ function statusView(
             ? t('dr_threefold')
             : t('dr_material')
     return { text: `${t('st_draw')} — ${reason}`, theirs: false }
+  }
+  if (outcome.reason === 'timeout') {
+    return { text: t('st_time_loss'), theirs: false }
+  }
+  if (outcome.reason === 'resignation') {
+    return { text: t('st_resign_loss'), theirs: false }
   }
   const base = state.turn === 'w' ? t('turn_w') : t('turn_b')
   return {
@@ -67,12 +74,12 @@ export function GameScreen({
   selectMoveFn?: typeof selectMove
 }) {
   const { t } = useI18n()
-  const g = useGame({ baseUrl, model, elo, selectMoveFn })
+  const g = useGame({ baseUrl, model, elo, selectMoveFn, opponentName })
   const { state } = g
   const checkSquare = state.status.isCheck
     ? findKing(state.board, state.turn)
     : null
-  const status = statusView(state, t)
+  const status = statusView(state, t, g.outcome)
 
   return (
     <div className="game">
@@ -81,8 +88,8 @@ export function GameScreen({
           variant="opp"
           name={opponentName}
           sub={`${t('opp')} · ELO ${elo}`}
-          clock="10:00"
-          active={state.turn === 'b'}
+          clock={g.blackClock}
+          active={state.turn === 'b' && !g.outcome.over}
         />
         <div style={{ position: 'relative' }}>
           <Board
@@ -111,8 +118,8 @@ export function GameScreen({
           variant="you"
           name={t('you')}
           sub={`ELO 1280 · ${t('yoursub')}`}
-          clock="10:00"
-          active={state.turn === 'w'}
+          clock={g.whiteClock}
+          active={state.turn === 'w' && !g.outcome.over}
         />
       </div>
 
@@ -122,7 +129,7 @@ export function GameScreen({
           <span className="txt">
             <b>{status.text}</b>
             <small>
-              {state.status.isGameOver
+              {g.outcome.over
                 ? ''
                 : g.thinking
                   ? t('theirsub')
@@ -149,7 +156,12 @@ export function GameScreen({
           onRefresh={() => {}}
           disabled
         />
-        <MoveList history={state.history} onNewGame={g.newGame} />
+        <MoveList
+          history={state.history}
+          onNewGame={g.newGame}
+          onResign={g.resign}
+          gameOver={g.outcome.over}
+        />
       </div>
     </div>
   )

@@ -1,10 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, test } from 'vitest'
 import type { ReactNode } from 'react'
 import { GameScreen } from './GameScreen'
 import { I18nProvider } from '../app/i18n'
 import { move } from '../../engine/game'
 import type { selectMove } from '../../llm/selectMove'
+import { loadGames } from '../history/gameHistory'
 
 beforeEach(() => localStorage.clear())
 afterEach(() => localStorage.clear())
@@ -95,4 +97,26 @@ test('Fool’s Mate: White plays, model plays Black to mate', async () => {
 test('the hint panel is inert', () => {
   render(wrap(<GameScreen {...baseProps} selectMoveFn={idleOpponent} />))
   expect(screen.getByRole('button', { name: /Фигура/ })).toBeDisabled()
+})
+
+test('both clocks start frozen at 10:00', () => {
+  const { container } = render(
+    wrap(<GameScreen {...baseProps} selectMoveFn={idleOpponent} />),
+  )
+  const clocks = container.querySelectorAll('.clock')
+  expect(clocks).toHaveLength(2)
+  expect([...clocks].map((c) => c.textContent)).toEqual(['10:00', '10:00'])
+})
+
+test('resigning shows the resignation status and records the game', async () => {
+  const { container } = render(
+    wrap(<GameScreen {...baseProps} selectMoveFn={idleOpponent} />),
+  )
+  await userEvent.click(screen.getByRole('button', { name: 'Сдаться' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Точно?' }))
+  expect(container.querySelector('.status .txt b')!.textContent).toBe(
+    'Поражение — сдача',
+  )
+  expect(loadGames()).toHaveLength(1)
+  expect(loadGames()[0].opponent).toBe('gemma')
 })
