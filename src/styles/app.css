@@ -415,14 +415,16 @@ body {
 .sq.sel {
   box-shadow: inset 0 0 0 2px var(--color-accent);
 }
-.sq.check::after {
+/* red under-piece glow: the king in check, and a capturable enemy piece */
+.sq.check::after,
+.sq.capture::after {
   content: '';
   position: absolute;
   inset: 0;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, #d96a7a 60%, transparent),
-    transparent 72%
+    color-mix(in srgb, #ff2d3f 82%, transparent),
+    transparent 70%
   );
 }
 /* legal move markers */
@@ -435,11 +437,6 @@ body {
   height: 30%;
   border-radius: 50%;
   background: color-mix(in srgb, var(--color-accent) 55%, transparent);
-}
-.sq .marker.ring {
-  inset: 6%;
-  border-radius: 50%;
-  border: 3px solid color-mix(in srgb, var(--color-accent) 65%, transparent);
 }
 .sq.legal {
   cursor: pointer;

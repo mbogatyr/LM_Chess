@@ -46,6 +46,7 @@ export function Board({
             if (hintMove && name === hintMove.from) classes.push('hint1')
             if (hintMove && name === hintMove.to) classes.push('hint-target')
             if (target) classes.push('legal')
+            if (target?.capture) classes.push('capture')
             return (
               <div
                 key={name}
@@ -55,11 +56,7 @@ export function Board({
               >
                 {c === 0 && <span className="coord rank">{8 - r}</span>}
                 {r === 7 && <span className="coord file">{FILES[c]}</span>}
-                {target && (
-                  <span
-                    className={`marker ${target.capture ? 'ring' : 'dot'}`}
-                  />
-                )}
+                {target && !target.capture && <span className="marker dot" />}
                 {piece && <Piece color={piece.color} type={piece.type} />}
               </div>
             )
