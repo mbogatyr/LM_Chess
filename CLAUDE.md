@@ -140,6 +140,7 @@ The full Nocturne prototype (markup/copy source of truth) is vendored read-only 
 
 ## What's next (not yet built)
 
+- **Piece move animation:** pieces currently just disappear from the source square and reappear on the destination (the `Board` re-renders straight off the new `state.board` matrix). Animate the move so the piece **slides** from its old square to the new one. Needs a design brainstorm — track piece identity across renders (e.g. a FLIP transform, or drive a single slide off `state.lastMove` from→to), and handle captures (when to remove the captured piece), castling (two pieces move), en passant, and promotion. Applies to both the human's and the model's moves. Frontend-only, CSS transforms.
 - **Real gameplay** (`chess.js`), decomposed into sub-projects **A, B and C done**:
   - **A — engine core** (`src/engine`): pure chess.js wrapper — `newGame`/`move`/`legalMoves`, full check/checkmate/stalemate/draw taxonomy, engine-owned board matrix and types. **DONE** (this is rules/state only; no UI, no LLM).
   - **B — interactive human play**: `ui/game` wired to the engine (hotseat click select→move, legal-move highlighting, real move list, promotion picker, turn/result status, New Game). **DONE** (superseded by C: the human now plays White only, the model plays Black).
