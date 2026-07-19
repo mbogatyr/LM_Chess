@@ -1134,23 +1134,3 @@ input[type='range'].slider::-moz-range-thumb {
   height: 100%;
   pointer-events: none;
 }
-.victory-sound {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  pointer-events: auto;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  font-size: 16px;
-  line-height: 1;
-  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-sm);
-  color: inherit;
-  cursor: pointer;
-}
-.victory-sound:hover {
-  border-color: var(--color-accent);
-}
