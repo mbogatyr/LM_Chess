@@ -60,6 +60,10 @@ idea behind it, then the exact move with the squares highlighted on the board.
 The engine validates the suggestion (a hint is never a random move); if the
 model can't produce a legal hint the panel says so rather than guessing.
 
+**Moves are animated.** The piece that just moved slides from its old square to
+its new one (both your moves and the model's), so the board never teleports.
+Reduced-motion preferences are respected.
+
 **Winning is celebrated.** When you win — checkmate, or the model running out of
 time — a canvas fireworks burst plays over the board with a short synthesized
 fanfare (Web Audio, no audio files), once per win.
