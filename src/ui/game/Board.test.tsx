@@ -23,7 +23,7 @@ test('renders 64 squares, 32 pieces and coord labels, no hint classes', () => {
   expect(container.querySelector('.arrows')).toBeNull()
 })
 
-test('marks the selected square and its legal targets (dot/ring)', () => {
+test('marks the selected square, a quiet target (dot) and a capture (shadow)', () => {
   const { container } = render(
     <Board
       {...base}
@@ -38,9 +38,14 @@ test('marks the selected square and its legal targets (dot/ring)', () => {
   expect(container.querySelector('.sq.sel')!.getAttribute('data-sq')).toBe('e2')
   const e3 = container.querySelector('[data-sq="e3"]')!
   const d3 = container.querySelector('[data-sq="d3"]')!
+  // quiet move: legal + a dot marker, not a capture
   expect(e3.classList.contains('legal')).toBe(true)
   expect(e3.querySelector('.marker.dot')).not.toBeNull()
-  expect(d3.querySelector('.marker.ring')).not.toBeNull()
+  expect(e3.classList.contains('capture')).toBe(false)
+  // capture: legal + the red under-piece shadow (via .capture), no marker
+  expect(d3.classList.contains('legal')).toBe(true)
+  expect(d3.classList.contains('capture')).toBe(true)
+  expect(d3.querySelector('.marker')).toBeNull()
 })
 
 test('highlights last move squares and the checked king', () => {
