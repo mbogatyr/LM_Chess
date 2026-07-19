@@ -115,11 +115,7 @@ export function GameScreen({
             board={state.board}
             selected={g.selected}
             legalTargets={g.legalTargets}
-            lastMove={
-              state.lastMove
-                ? { from: state.lastMove.from, to: state.lastMove.to }
-                : null
-            }
+            lastMove={state.lastMove}
             checkSquare={checkSquare}
             hintMove={hint.hintMove}
             onSquareClick={g.onSquareClick}

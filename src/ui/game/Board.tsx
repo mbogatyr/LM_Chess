@@ -1,8 +1,10 @@
+import { useRef } from 'react'
 import type { Square, SquareName } from '../../engine/types'
 import type { BoardStyle, PieceStyle } from '../app/appState'
 import type { LegalTarget } from './useGame'
 import { sqName, FILES } from './chessDemo'
 import { Piece } from './Piece'
+import { usePieceSlide } from './usePieceSlide'
 
 export function Board({
   board,
@@ -18,16 +20,19 @@ export function Board({
   board: Square[][]
   selected: SquareName | null
   legalTargets: LegalTarget[]
-  lastMove: { from: SquareName; to: SquareName } | null
+  lastMove: { from: SquareName; to: SquareName; san: string } | null
   checkSquare: SquareName | null
   hintMove?: { from: SquareName; to: SquareName } | null
   onSquareClick: (sq: SquareName) => void
   boardStyle: BoardStyle
   pieceStyle: PieceStyle
 }) {
+  const boardRef = useRef<HTMLDivElement>(null)
+  usePieceSlide(boardRef, lastMove)
+
   return (
     <div className={`board-wrap pieces--${pieceStyle}`}>
-      <div className={`board board--${boardStyle}`}>
+      <div className={`board board--${boardStyle}`} ref={boardRef}>
         {board.flatMap((row, r) =>
           row.map((piece, c) => {
             const name = sqName(r, c)

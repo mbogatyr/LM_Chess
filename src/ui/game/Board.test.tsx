@@ -48,7 +48,7 @@ test('highlights last move squares and the checked king', () => {
     <Board
       {...base}
       board={newGame().board}
-      lastMove={{ from: 'e2', to: 'e4' }}
+      lastMove={{ from: 'e2', to: 'e4', san: 'e4' }}
       checkSquare="e1"
     />,
   )
@@ -60,6 +60,21 @@ test('highlights last move squares and the checked king', () => {
   expect(container.querySelector('.sq.check')!.getAttribute('data-sq')).toBe(
     'e1',
   )
+})
+
+test('a lastMove change does not throw (slide animation wiring)', () => {
+  const { rerender } = render(
+    <Board {...base} board={newGame().board} lastMove={null} />,
+  )
+  expect(() =>
+    rerender(
+      <Board
+        {...base}
+        board={newGame().board}
+        lastMove={{ from: 'e2', to: 'e4', san: 'e4' }}
+      />,
+    ),
+  ).not.toThrow()
 })
 
 test('clicking a square calls onSquareClick with its name', async () => {
