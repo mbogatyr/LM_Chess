@@ -62,8 +62,7 @@ model can't produce a legal hint the panel says so rather than guessing.
 
 **Winning is celebrated.** When you win — checkmate, or the model running out of
 time — a canvas fireworks burst plays over the board with a short synthesized
-fanfare (Web Audio, no audio files), once per win. A small toggle mutes the
-sound and the choice is remembered.
+fanfare (Web Audio, no audio files), once per win.
 
 Not yet built: a commentary-model adapter (a model that _comments on_ a played
 move). See `CLAUDE.md` for the full picture and what's next.
