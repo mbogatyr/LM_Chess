@@ -95,7 +95,18 @@ src/
 npm ci → lint → format:check → typecheck → test → build
 ```
 
-A PR should not merge unless this is green. There is **no deploy step** yet — static hosting (Azure) deployment is a separate future task.
+A PR should not merge unless this is green.
+
+## Deployment
+
+A **separate** workflow, `.github/workflows/azure-swa.yml`, publishes the app to **Azure Static Web Apps** (`ci.yml` stays purely the quality gate):
+
+- **Resource:** SWA `neuro-chess` (Free SKU, West Europe, resource group `neuro-chess-swa-rg`), created **disconnected** (Azure is not linked to the repo). Live at **https://ashy-rock-00119fc03.7.azurestaticapps.net**.
+- **Auth:** a deployment token in the repo secret `AZURE_STATIC_WEB_APPS_API_TOKEN` (set via `gh secret set`; not in the repo).
+- **Flow:** the workflow builds with Node 20 (`npm ci && npm run build`, same as CI) and deploys the prebuilt `dist/` via `Azure/static-web-apps-deploy@v1` (`skip_app_build: true`, `app_location: dist`). **push → `main`** deploys production; a **pull_request** opens/updates a preview environment; **PR closed** closes it.
+- Spec: `docs/superpowers/specs/2026-07-20-azure-static-web-apps-deploy-design.md`.
+
+The deployed HTTPS site calls `http://localhost:<port>` in LM Studio — `localhost` is a potentially-trustworthy origin so mixed content isn't blocked, but LM Studio must send CORS headers for the site's origin (see the gotcha below).
 
 ## Non-obvious decisions & gotchas
 

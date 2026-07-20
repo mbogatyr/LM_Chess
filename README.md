@@ -26,6 +26,23 @@ npm run dev
 - `typecheck` - run the TypeScript compiler in check-only mode
 - `format` - format the codebase with Prettier
 
+## Deployment
+
+The app is published to **Azure Static Web Apps** at
+**https://ashy-rock-00119fc03.7.azurestaticapps.net**.
+
+Deployment is automated by `.github/workflows/azure-swa.yml`: a push to `main`
+builds the app (Node 20, `npm ci && npm run build`) and deploys `dist/` to
+production; a pull request gets its own preview environment that is torn down
+when the PR closes. Auth uses a deployment token stored in the repo secret
+`AZURE_STATIC_WEB_APPS_API_TOKEN` (the CI quality gate in `ci.yml` is separate).
+
+**Using the hosted app with LM Studio:** the page runs over HTTPS but talks to
+LM Studio at `http://localhost:<port>` on your own machine. Browsers allow this
+(`localhost` is a "potentially trustworthy" origin), but LM Studio must send CORS
+headers for the site's origin — enable CORS in LM Studio's server settings so the
+hosted origin (`https://…azurestaticapps.net`) is allowed.
+
 ## Status
 
 The LM Studio connection (real HTTP client + connection hook) and the full
