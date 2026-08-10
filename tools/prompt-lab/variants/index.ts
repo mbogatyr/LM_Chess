@@ -1,7 +1,15 @@
 import type { PromptVariant } from './types'
 import { v0Baseline } from './v0-baseline'
+import { v1LegalList } from './v1-legal-list'
+import { v2Uci } from './v2-uci'
+import { v3Board } from './v3-board'
 
-export const ALL_VARIANTS: PromptVariant[] = [v0Baseline]
+export const ALL_VARIANTS: PromptVariant[] = [
+  v0Baseline,
+  v1LegalList,
+  v2Uci,
+  v3Board,
+]
 
 export function getVariants(names?: string[]): PromptVariant[] {
   if (!names || names.length === 0) return ALL_VARIANTS
