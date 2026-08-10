@@ -1,6 +1,9 @@
 import { parseSanCandidates } from '../../../src/llm/adapters/genericFen'
 import type { PromptVariant } from './types'
 
+// Regex to detect SAN-shaped tokens in text
+const SAN_RE = /(O-O-O|O-O|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?)/
+
 export function parseFinalLineSan(reply: string): string[] {
   const lines = reply
     .trim()
@@ -8,8 +11,13 @@ export function parseFinalLineSan(reply: string): string[] {
     .map((l) => l.trim())
     .filter(Boolean)
   const last = lines[lines.length - 1] ?? ''
-  const fromLast = parseSanCandidates(last)
-  return fromLast.length > 0 ? fromLast : parseSanCandidates(reply)
+  // Only use the last line if it actually contains a SAN-shaped token
+  const lastHasSan = SAN_RE.test(last)
+  if (lastHasSan) {
+    return parseSanCandidates(last)
+  }
+  // Fall back to parsing the whole reply
+  return parseSanCandidates(reply)
 }
 
 const SYSTEM =

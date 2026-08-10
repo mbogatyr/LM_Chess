@@ -11,10 +11,9 @@ describe('v4-cot', () => {
     })
 
     it('falls back to whole-reply parsing when the last line has no move', () => {
-      const result = parseFinalLineSan('Nf3 is best.\n....')
-      expect(result.length).toBeGreaterThan(0)
-      // Should find Nf3 since last line "...." has no valid moves
-      expect(result.some((m) => m === 'Nf3' || m.includes('Nf3'))).toBe(true)
+      expect(parseFinalLineSan('I would play Nf3.\nGood luck!')).toContain(
+        'Nf3',
+      )
     })
 
     it('returns array of strings', () => {
