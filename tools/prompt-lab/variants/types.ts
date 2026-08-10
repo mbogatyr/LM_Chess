@@ -8,5 +8,9 @@ export type PromptVariant = {
   description: string
   buildRequest(ctx: PositionContext): ModelRequest
   parse(reply: string): string[]
-  sampling: { temperature: number; maxTokens: number }
+  sampling: {
+    temperature: number
+    maxTokens: number
+    reasoningEffort?: string
+  }
 }

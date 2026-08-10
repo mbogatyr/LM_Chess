@@ -20,5 +20,9 @@ export type ModelAdapter = {
   matches: (modelId: string) => boolean
   buildRequest: (ctx: MoveContext) => ModelRequest
   parseMoves: (reply: string, ctx: MoveContext) => MoveInput[]
-  sampling?: { temperature?: number; maxTokens?: number }
+  sampling?: {
+    temperature?: number
+    maxTokens?: number
+    reasoningEffort?: string
+  }
 }

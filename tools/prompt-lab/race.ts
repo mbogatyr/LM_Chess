@@ -29,6 +29,7 @@ export async function runRace(opts: {
   transport: Transport
   cache: ResponseCache
   resultsDir: string
+  reasoningEffort?: string
   log?: (msg: string) => void
 }): Promise<{ winner: string; screenTable: string; finalTable: string }> {
   const log = opts.log ?? (() => {})
@@ -41,6 +42,7 @@ export async function runRace(opts: {
       n,
       transport: opts.transport,
       cache: opts.cache,
+      reasoningEffort: opts.reasoningEffort,
       onProgress: (done, total, matches) => {
         if (done % 25 === 0 || done === total) {
           log(`  ${variant.name}: ${done}/${total} (match ${matches})`)

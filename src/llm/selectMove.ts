@@ -54,6 +54,7 @@ export async function selectMove(
     const request = adapter.buildRequest(ctx)
     const temperature = adapter.sampling?.temperature ?? DEFAULT_TEMPERATURE
     const maxTokens = adapter.sampling?.maxTokens ?? DEFAULT_MAX_TOKENS
+    const reasoningEffort = adapter.sampling?.reasoningEffort
 
     // LMStudioError from the transport propagates — a connection failure is
     // the orchestrator's concern, not something we mask with a random move.
@@ -64,6 +65,7 @@ export async function selectMove(
             messages: request.messages,
             temperature,
             maxTokens,
+            reasoningEffort,
             signal,
           })
         : await complete(baseUrl, {
@@ -71,6 +73,7 @@ export async function selectMove(
             prompt: request.prompt,
             temperature,
             maxTokens,
+            reasoningEffort,
             signal,
           })
 

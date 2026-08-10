@@ -97,4 +97,50 @@ describe('runEval', () => {
     expect(run2.results[0].cached).toBe(true)
     expect(calls).toHaveLength(1)
   })
+
+  it('passes the merged sampling (including reasoningEffort) to the transport', async () => {
+    const samplingSeen: unknown[] = []
+    const transport: Transport = async (_model, _request, sampling) => {
+      samplingSeen.push(sampling)
+      return 'e5'
+    }
+    const cache = freshCache()
+    await runEval({
+      model: 'test',
+      variant: testVariant,
+      positions: [RECORD],
+      n: 1,
+      transport,
+      cache,
+      reasoningEffort: 'none',
+    })
+    expect(samplingSeen[0]).toMatchObject({ reasoningEffort: 'none' })
+  })
+
+  it('does not share cache entries between runs differing only in reasoningEffort', async () => {
+    let calls = 0
+    const transport: Transport = async () => {
+      calls++
+      return 'e5'
+    }
+    const cache = freshCache()
+    await runEval({
+      model: 'test',
+      variant: testVariant,
+      positions: [RECORD],
+      n: 1,
+      transport,
+      cache,
+    })
+    await runEval({
+      model: 'test',
+      variant: testVariant,
+      positions: [RECORD],
+      n: 1,
+      transport,
+      cache,
+      reasoningEffort: 'none',
+    })
+    expect(calls).toBe(2)
+  })
 })

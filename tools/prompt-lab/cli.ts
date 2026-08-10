@@ -34,6 +34,7 @@ Commands:
               --prompt <variant>   required
               --n <count>          default: 150
               --base-url <url>     default: http://localhost:1234
+              --reasoning-effort <value>  optional, forwarded to the model
 
   race      screen variants, promote finalists, declare a winner
               --model <id>         required
@@ -42,6 +43,7 @@ Commands:
               --final <count>      default: 600
               --keep <count>       default: 3
               --base-url <url>     default: http://localhost:1234
+              --reasoning-effort <value>  optional, forwarded to the model
 
   compare   print a ranked table of stored runs for a model
               --model <id>         required
@@ -113,6 +115,7 @@ async function runEvalCommand(): Promise<void> {
       prompt: { type: 'string' },
       n: { type: 'string', default: '150' },
       'base-url': { type: 'string', default: 'http://localhost:1234' },
+      'reasoning-effort': { type: 'string' },
     },
   })
   if (!values.model) throw new Error('--model is required')
@@ -128,6 +131,7 @@ async function runEvalCommand(): Promise<void> {
     n: Number(values.n),
     transport: makeLmStudioTransport(baseUrl),
     cache: makeCache(values.model),
+    reasoningEffort: values['reasoning-effort'],
     onProgress: (done, total, matches) => {
       if (done % 10 === 0 || done === total) {
         console.log(`  ${done}/${total} (match ${matches})`)
@@ -151,6 +155,7 @@ async function runRaceCommand(): Promise<void> {
       final: { type: 'string', default: '600' },
       keep: { type: 'string', default: '3' },
       'base-url': { type: 'string', default: 'http://localhost:1234' },
+      'reasoning-effort': { type: 'string' },
     },
   })
   if (!values.model) throw new Error('--model is required')
@@ -168,6 +173,7 @@ async function runRaceCommand(): Promise<void> {
     transport: makeLmStudioTransport(baseUrl),
     cache: makeCache(values.model),
     resultsDir: RESULTS_DIR,
+    reasoningEffort: values['reasoning-effort'],
     log: console.log,
   })
   console.log('\nScreen:')

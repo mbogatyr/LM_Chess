@@ -81,3 +81,39 @@ test('completion throws parse error when text is missing', async () => {
     completion('http://localhost:1234', { model: 'm', prompt: 'x' }),
   ).rejects.toMatchObject({ kind: 'parse' })
 })
+
+test('chatCompletion includes reasoning_effort in the body when set', async () => {
+  const spy = mockFetchOnce(chatBody)
+  await chatCompletion('http://localhost:1234', {
+    model: 'm',
+    messages: [],
+    reasoningEffort: 'none',
+  })
+  const sent = JSON.parse(spy.mock.calls[0][1]?.body as string)
+  expect(sent.reasoning_effort).toBe('none')
+})
+
+test('chatCompletion omits reasoning_effort from the body when not set', async () => {
+  const spy = mockFetchOnce(chatBody)
+  await chatCompletion('http://localhost:1234', { model: 'm', messages: [] })
+  const sent = JSON.parse(spy.mock.calls[0][1]?.body as string)
+  expect(sent).not.toHaveProperty('reasoning_effort')
+})
+
+test('completion includes reasoning_effort in the body when set', async () => {
+  const spy = mockFetchOnce(completionBody)
+  await completion('http://localhost:1234', {
+    model: 'm',
+    prompt: 'x',
+    reasoningEffort: 'none',
+  })
+  const sent = JSON.parse(spy.mock.calls[0][1]?.body as string)
+  expect(sent.reasoning_effort).toBe('none')
+})
+
+test('completion omits reasoning_effort from the body when not set', async () => {
+  const spy = mockFetchOnce(completionBody)
+  await completion('http://localhost:1234', { model: 'm', prompt: 'x' })
+  const sent = JSON.parse(spy.mock.calls[0][1]?.body as string)
+  expect(sent).not.toHaveProperty('reasoning_effort')
+})

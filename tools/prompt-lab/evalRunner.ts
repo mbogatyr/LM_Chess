@@ -31,7 +31,11 @@ export type EvalRun = {
 export type Transport = (
   model: string,
   request: ModelRequest,
-  sampling: { temperature: number; maxTokens: number },
+  sampling: {
+    temperature: number
+    maxTokens: number
+    reasoningEffort?: string
+  },
 ) => Promise<string>
 
 export function rebuildContext(record: PositionRecord): PositionContext {
@@ -90,16 +94,23 @@ export async function runEval(opts: {
   n: number
   transport: Transport
   cache: ResponseCache
+  reasoningEffort?: string
   onProgress?: (done: number, total: number, matches: number) => void
 }): Promise<EvalRun> {
   const slice = opts.positions.slice(0, opts.n)
   const results: PositionResult[] = []
   let matches = 0
+  const sampling = {
+    ...opts.variant.sampling,
+    ...(opts.reasoningEffort !== undefined
+      ? { reasoningEffort: opts.reasoningEffort }
+      : {}),
+  }
   for (let i = 0; i < slice.length; i++) {
     const record = slice[i]
     const ctx = rebuildContext(record)
     const request = opts.variant.buildRequest(ctx)
-    const key = cacheKey(opts.model, request, opts.variant.sampling)
+    const key = cacheKey(opts.model, request, sampling)
     const hit = opts.cache.get(key)
     let reply: string
     let latencyMs: number
@@ -109,7 +120,7 @@ export async function runEval(opts: {
       cached = true
     } else {
       const t0 = Date.now()
-      reply = await opts.transport(opts.model, request, opts.variant.sampling)
+      reply = await opts.transport(opts.model, request, sampling)
       latencyMs = Date.now() - t0
       cached = false
       opts.cache.put(key, { reply, latencyMs })
@@ -161,6 +172,7 @@ export function makeLmStudioTransport(
             messages: request.messages,
             temperature: sampling.temperature,
             maxTokens: sampling.maxTokens,
+            reasoningEffort: sampling.reasoningEffort,
             signal,
           })
         }
@@ -169,6 +181,7 @@ export function makeLmStudioTransport(
           prompt: request.prompt,
           temperature: sampling.temperature,
           maxTokens: sampling.maxTokens,
+          reasoningEffort: sampling.reasoningEffort,
           signal,
         })
       } catch (e) {
