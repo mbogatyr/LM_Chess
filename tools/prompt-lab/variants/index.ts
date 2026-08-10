@@ -6,6 +6,8 @@ import { v3Board } from './v3-board'
 import { v4Cot } from './v4-cot'
 import { v5Fewshot } from './v5-fewshot'
 import { v6PgnCompletion } from './v6-pgn-completion'
+import { v7CotLegal } from './v7-cot-legal'
+import { v8KarpovLegal } from './v8-karpov-legal'
 
 export const ALL_VARIANTS: PromptVariant[] = [
   v0Baseline,
@@ -15,6 +17,8 @@ export const ALL_VARIANTS: PromptVariant[] = [
   v4Cot,
   v5Fewshot,
   v6PgnCompletion,
+  v7CotLegal,
+  v8KarpovLegal,
 ]
 
 export function getVariants(names?: string[]): PromptVariant[] {
