@@ -1,10 +1,12 @@
+import { gemma4Adapter } from './gemma4'
 import { genericFenAdapter } from './genericFen'
 import type { ModelAdapter } from './types'
 
-// Specialised adapters are registered here as they are written. The generic
-// default is NOT in this list — it is only reached via the `?? defaultAdapter`
-// fallback, so its `matches: () => true` never swallows a specific model.
-const ADAPTERS: ModelAdapter[] = []
+// Specialised adapters are registered here as they are written, most
+// specific first. The generic default is NOT in this list — it is only
+// reached via the `?? defaultAdapter` fallback, so its `matches: () =>
+// true` never swallows a specific model.
+const ADAPTERS: ModelAdapter[] = [gemma4Adapter]
 
 export const defaultAdapter: ModelAdapter = genericFenAdapter
 
