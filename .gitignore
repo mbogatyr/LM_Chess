@@ -26,3 +26,7 @@ dist/
 build/
 *.tsbuildinfo
 .claude/launch.json
+
+# Prompt Lab
+karpov.pgn
+tools/prompt-lab/results/
