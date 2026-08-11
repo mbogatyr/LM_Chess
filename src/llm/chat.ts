@@ -11,6 +11,7 @@ export type ChatRequest = {
   messages: ChatMessage[]
   temperature?: number
   maxTokens?: number
+  reasoningEffort?: string
   signal?: AbortSignal
 }
 
@@ -19,6 +20,7 @@ export type CompletionRequest = {
   prompt: string
   temperature?: number
   maxTokens?: number
+  reasoningEffort?: string
   signal?: AbortSignal
 }
 
@@ -58,10 +60,14 @@ async function postJson(
 function sampling(req: {
   temperature?: number
   maxTokens?: number
-}): Record<string, number> {
+  reasoningEffort?: string
+}): Record<string, number | string> {
   return {
     ...(req.temperature !== undefined ? { temperature: req.temperature } : {}),
     ...(req.maxTokens !== undefined ? { max_tokens: req.maxTokens } : {}),
+    ...(req.reasoningEffort !== undefined
+      ? { reasoning_effort: req.reasoningEffort }
+      : {}),
   }
 }
 

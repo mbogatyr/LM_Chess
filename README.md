@@ -59,7 +59,10 @@ connection banner with retry. The model only _proposes_ moves; the engine always
 _judges_ legality (illegal or unparseable replies are retried, then fall back to
 a random legal move). Move selection runs through a per-model adapter layer
 (`src/llm/adapters`) with a generic default, so specialised chess models can be
-added without touching the engine.
+added without touching the engine. The per-model prompt adapters (`gemma-4`,
+`qwen3.5`) were tuned on 2,305 Karpov games with the bundled Prompt Lab harness
+(`tools/prompt-lab`), dramatically reducing illegal replies — see
+`docs/prompt-lab/` for the campaign reports.
 
 **Match history, persistence, and clocks are real.** Each finished game
 (checkmate / draw / timeout / resignation) is recorded to a persistent

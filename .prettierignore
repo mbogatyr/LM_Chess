@@ -3,3 +3,4 @@ node_modules
 package-lock.json
 .superpowers
 docs/design-reference
+tools/prompt-lab/data/positions.json
