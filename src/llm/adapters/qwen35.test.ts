@@ -76,6 +76,16 @@ test('retry system prompt instructs picking from the legal-move list, SAN only',
   expect(req.messages[0].content).toMatch(/no explanation/i)
 })
 
+test('retry system prompt carries the app ELO persona (not v8s Karpov flavor text)', () => {
+  const req = qwen35Adapter.buildRequest(
+    ctx({ elo: 1450, correction: { badReply: 'Qzz9', reason: 'illegal' } }),
+  )
+  if (req.kind !== 'chat') throw new Error('expected chat')
+  expect(req.messages[0].content).toContain('1450')
+  expect(req.messages[0].content).toContain('White')
+  expect(req.messages[0].content).not.toContain('Karpov')
+})
+
 test('retry user message appends the correction sentence', () => {
   const req = qwen35Adapter.buildRequest(
     ctx({ correction: { badReply: 'Qzz9', reason: 'illegal' } }),

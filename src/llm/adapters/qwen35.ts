@@ -25,10 +25,13 @@ import type { ModelAdapter, ModelRequest, MoveContext } from './types'
 // NOTE on ELO: attempt 1 is a raw-completion prompt (GM PGN headers, not a
 // chat system message) — there is no persona slot to carry the app's ELO
 // setting, so it is not expressible there and is intentionally omitted
-// rather than force-fit. It is also omitted from the retry-stage system
-// prompt (kept as the campaign's generic strong-grandmaster line, as
-// measured): once a correction is needed the only goal is a legal reply,
-// and the campaign found persona wording doesn't move the legality number.
+// rather than force-fit. The retry stage IS a chat request, so — mirroring
+// gemma4.ts's established precedent for the identical noise-level-persona
+// situation (the campaign found persona wording moves legality only within
+// noise: v1 generic-GM 99.3% vs v8-karpov 100.0% at screen n=150) — it
+// keeps the app's ELO-persona line instead of v8's Karpov flavor text, so
+// the user's opponent-strength setting stays meaningful on the retry path
+// too.
 //
 // qwen3.5-9b is a reasoning model: with the app's max_tokens budget, every
 // completion token goes to reasoning and `content` comes back empty unless
@@ -69,16 +72,17 @@ export function parseFirstSan(reply: string): string[] {
   return out
 }
 
-// --- Retry: v8-karpov-legal (transplanted from
-// tools/prompt-lab/variants/v8-karpov-legal.ts) -----------------------------
+// --- Retry: v8-karpov-legal's legal-list structure (transplanted from
+// tools/prompt-lab/variants/v8-karpov-legal.ts), but with gemma4.ts's
+// ELO-persona system line in place of v8's Karpov flavor text — see the
+// NOTE on ELO above. -------------------------------------------------------
 
-const RETRY_SYSTEM =
-  'You are Anatoly Karpov, the 12th World Chess Champion, at your peak ' +
-  'strength. You will be given a chess position and the list of all legal ' +
-  'moves. Choose the move you would play — positionally precise, ' +
-  'prophylactic, technically flawless. Reply with ONLY that move in ' +
-  'Standard Algebraic Notation, exactly as it appears in the list. ' +
-  'No explanation.'
+const retrySystem = (elo: number, turn: GameState['turn']): string =>
+  `You are a chess engine playing the ${sideName(turn)} pieces at ` +
+  `approximately ${elo} Elo strength. You will be given a chess position ` +
+  `and the list of all legal moves. Choose the best move. Reply with ` +
+  `ONLY that move in Standard Algebraic Notation, exactly as it appears ` +
+  `in the list. No explanation, no commentary — just the single move.`
 
 function retryUserMessage(ctx: MoveContext): string {
   const moves = toSanMoveChain(ctx.state)
@@ -103,7 +107,7 @@ export const qwen35Adapter: ModelAdapter = {
       ? {
           kind: 'chat',
           messages: [
-            { role: 'system', content: RETRY_SYSTEM },
+            { role: 'system', content: retrySystem(ctx.elo, ctx.state.turn) },
             { role: 'user', content: retryUserMessage(ctx) },
           ],
         }
