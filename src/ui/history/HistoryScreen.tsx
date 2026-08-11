@@ -5,7 +5,7 @@ import { gameStats, loadGames } from './gameHistory'
 export function HistoryScreen() {
   const { t, lang } = useI18n()
   const games = useMemo(() => loadGames(), [])
-  const { played, winRate, streak, best } = gameStats(games)
+  const { played, winRate, streak } = gameStats(games)
   const fmtDate = (ms: number) =>
     new Date(ms).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
       day: 'numeric',
@@ -19,6 +19,9 @@ export function HistoryScreen() {
           {t('lb_p')}
         </p>
       </div>
+      {/* The fourth "Best ELO" stat tile is hidden — see
+          docs/superpowers/specs/2026-08-11-hide-elo-ui-design.md. st_best
+          and gameStats().best deliberately stay unused. */}
       <div className="lb-stats">
         <div className="card stat elev-sm">
           <span className="k">{t('st_played')}</span>
@@ -31,10 +34,6 @@ export function HistoryScreen() {
         <div className="card stat elev-sm">
           <span className="k">{t('st_streak')}</span>
           <span className="v">{streak > 0 ? `+${streak}` : '0'}</span>
-        </div>
-        <div className="card stat elev-sm">
-          <span className="k">{t('st_best')}</span>
-          <span className="v">{best}</span>
         </div>
       </div>
       {games.length === 0 ? (
@@ -52,11 +51,13 @@ export function HistoryScreen() {
           style={{ padding: 'var(--space-2) var(--space-4)' }}
         >
           <table className="table">
+            {/* The ELO column is hidden — see
+                docs/superpowers/specs/2026-08-11-hide-elo-ui-design.md.
+                col_elo deliberately stays in i18n, unused. */}
             <thead>
               <tr>
                 <th>{t('col_date')}</th>
                 <th>{t('col_opp')}</th>
-                <th>{t('col_elo')}</th>
                 <th>{t('col_len')}</th>
                 <th>{t('col_res')}</th>
               </tr>
@@ -66,9 +67,6 @@ export function HistoryScreen() {
                 <tr key={g.id}>
                   <td className="text-muted">{fmtDate(g.endedAt)}</td>
                   <td>{g.opponent}</td>
-                  <td style={{ fontVariantNumeric: 'tabular-nums' }}>
-                    {g.elo}
-                  </td>
                   <td
                     className="text-muted"
                     style={{ fontVariantNumeric: 'tabular-nums' }}

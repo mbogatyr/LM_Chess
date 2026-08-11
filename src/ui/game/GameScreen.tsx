@@ -103,10 +103,13 @@ export function GameScreen({
   return (
     <div className="game">
       <div className="board-col">
+        {/* ELO badges are hidden on both strips — see
+            docs/superpowers/specs/2026-08-11-hide-elo-ui-design.md. The
+            elo prop deliberately stays wired into useGame/useHint above. */}
         <PlayerStrip
           variant="opp"
           name={opponentName}
-          sub={`${t('opp')} · ELO ${elo}`}
+          sub={t('opp')}
           clock={g.blackClock}
           active={state.turn === 'b' && !g.outcome.over}
         />
@@ -134,7 +137,7 @@ export function GameScreen({
         <PlayerStrip
           variant="you"
           name={t('you')}
-          sub={`ELO 1280 · ${t('yoursub')}`}
+          sub={t('yoursub')}
           clock={g.whiteClock}
           active={state.turn === 'w' && !g.outcome.over}
         />
