@@ -83,3 +83,19 @@ test('dispatches to the completion transport for completion adapters', async () 
   expect(out.san).toBe('e5')
   expect(complete).toHaveBeenCalledTimes(1)
 })
+
+test('passes the adapter reasoningEffort through to the chat transport', async () => {
+  const chat = vi.fn().mockResolvedValue('e5')
+  const adapter: ModelAdapter = {
+    ...fakeAdapter,
+    sampling: { reasoningEffort: 'none' },
+  }
+  await selectMove(params(), { adapter, chat })
+  expect(chat.mock.calls[0][1]).toMatchObject({ reasoningEffort: 'none' })
+})
+
+test('passes undefined reasoningEffort when the adapter does not set it', async () => {
+  const chat = vi.fn().mockResolvedValue('e5')
+  await selectMove(params(), { adapter: fakeAdapter, chat })
+  expect(chat.mock.calls[0][1]).toMatchObject({ reasoningEffort: undefined })
+})

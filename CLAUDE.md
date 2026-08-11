@@ -42,6 +42,8 @@ npm run lint       # eslint .
 npm run typecheck  # tsc -b   (see note below)
 npm run format     # prettier --write .
 npm run format:check
+npm run prompt-lab -- <command>  # move-prompt evaluation harness (see tools/prompt-lab)
+npm run prompt-lab -- race --model <id> --reasoning-effort none  # run a campaign for a new model
 ```
 
 The **local quality gate mirrors CI exactly** — run this before pushing:
@@ -67,9 +69,12 @@ src/
   main.tsx
   App.test.tsx
   test/setup.ts   # registers jest-dom matchers
+tools/prompt-lab/  # standalone move-prompt evaluation harness (sample/eval/race/compare), run via vite-node; committed 1000-position benchmark generated from karpov.pgn — see docs/superpowers/specs/2026-08-10-prompt-lab-design.md; two campaign reports live in docs/prompt-lab/
 ```
 
 `engine/` has a real core: a pure `chess.js` wrapper (`newGame`/`move`/`legalMoves`, full game-status taxonomy) with its own test suite — no React, no UI wiring. `ui/game/` is now a **real game vs the model**: the human plays **White**, a local LM Studio model plays **Black**. `useGame` drives it over the engine + `src/llm/selectMove` — real legal-move highlighting, move list, turn/result status, check + last-move, a promotion picker, New Game, a "model is thinking" state, a connection-error banner with retry, and a fallback note when the model's move couldn't be parsed. Move selection goes through a universal `ModelAdapter` strategy (`src/llm/adapters`, injected by `resolveAdapter(modelId)` with a generic FEN-only default) so per-model prompt/parse formats can be added without touching the engine; the **engine always judges legality** (illegal/unparseable → retry with correction → random legal fallback). Keep the three responsibilities separate as the app grows: **rules/state** (`engine/`), **LLM I/O + move selection** (`llm/`), and **presentation** (`ui/`) must not bleed into each other (`llm` must not import `ui`). `ui/history/` now renders **real finished games** from `src/ui/history/gameHistory.ts` (localStorage-persisted `GameRecord`s under key `nocturne-chess-games`, cap 50; empty state; no demo data), and `ui/game/` has **live per-side clocks** (`useChessClock`, 10:00/side, symmetric — Black ticks while the model thinks and **can flag** → the human wins on time; the model's clock pauses on infrastructure, i.e. the connection-error banner and the retry backoff) plus a wired **Resign** button — `useGame` records each finished game (mate/draw/timeout/resignation) exactly once. This live model clock **supersedes the earlier D₁ decision** to freeze Black. The `HintConsole` is now **live**: `useHint` + `src/llm/hint.ts` ask the connected model for one best move (validated by the engine, never a random fallback), revealed progressively (piece type → idea → exact move + a `Board` `hintMove` highlight). When the human **wins** (`outcome.result === 'win'`), a `VictoryOverlay` fires once over the board — canvas fireworks (`src/ui/game/fireworks.ts`) + a synthesized Web Audio fanfare (`src/ui/game/fanfare.ts`, layered voices + a sustained chord through a compressor); sound is always on (no controls); frontend-only, no assets. Moves are **animated**: the moving piece slides from its old square to the new one via a FLIP (`src/ui/game/slideAnimation.ts` + `usePieceSlide` in `Board`) over the existing `.piece` CSS transition — no CSS changes; both the human's and the model's moves slide; honors `prefers-reduced-motion`. What remains of sub-project D is only the **commentary-model adapter** (e.g. `chess-gemma-commentary`).
+
+Move selection now has two real per-model adapters found with Prompt Lab: `gemma4` (legal-move-list prompt + `reasoningEffort: 'none'`; campaign: match 9.8% vs 7.8% baseline, legality 94.7% vs 60.5%) and `qwen35` (two-stage: PGN-completion first attempt, ELO-persona legal-list chat on retries; campaign: 10.7% vs 3.3% match) — see docs/prompt-lab/*.md.
 
 ## Development standards
 
@@ -114,6 +119,7 @@ The deployed HTTPS site calls `http://localhost:<port>` in LM Studio — `localh
 - **TS build artifacts are redirected out of the repo root.** `tsBuildInfoFile` and the vite-config declaration output go to `node_modules/.tmp/` (gitignored), plus `*.tsbuildinfo` is in `.gitignore`. If you touch the tsconfig topology, keep build output from leaking into the repo root.
 - **Calling `http://localhost` from an HTTPS static host** (Azure) will need LM Studio to send CORS headers for the site's origin, and relies on browsers treating `http://localhost` as a "potentially trustworthy origin". Verify this explicitly when the LLM integration is built — don't assume.
 - `.superpowers/` is agent scratch (gitignored, excluded from Prettier). Not part of the product.
+- **Local reasoning models (gemma-4, qwen3.5) return empty `content`** with a small `max_tokens` because tokens go to `reasoning_content` instead. The transports accept an optional `reasoningEffort` (`'none'` disables thinking via LM Studio's `reasoning_effort` param); per-model adapters must set it or `selectMove` degrades to its random fallback.
 
 ## How we work: Superpowers methodology
 
