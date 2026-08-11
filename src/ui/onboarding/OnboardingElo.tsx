@@ -18,7 +18,7 @@ export function OnboardingElo({
   return (
     <div className="onb">
       <div className="onb-card">
-        <Steps active={3} />
+        <Steps active={2} />
         <h2>{t('elo_h')}</h2>
         <p className="lede">{t('elo_p')}</p>
         <div className="elo-head">
