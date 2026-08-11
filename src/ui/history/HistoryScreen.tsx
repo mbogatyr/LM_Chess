@@ -19,6 +19,9 @@ export function HistoryScreen() {
           {t('lb_p')}
         </p>
       </div>
+      {/* The fourth "Best ELO" stat tile is hidden — see
+          docs/superpowers/specs/2026-08-11-hide-elo-ui-design.md. st_best
+          and gameStats().best deliberately stay unused. */}
       <div className="lb-stats">
         <div className="card stat elev-sm">
           <span className="k">{t('st_played')}</span>
@@ -48,6 +51,9 @@ export function HistoryScreen() {
           style={{ padding: 'var(--space-2) var(--space-4)' }}
         >
           <table className="table">
+            {/* The ELO column is hidden — see
+                docs/superpowers/specs/2026-08-11-hide-elo-ui-design.md.
+                col_elo deliberately stays in i18n, unused. */}
             <thead>
               <tr>
                 <th>{t('col_date')}</th>

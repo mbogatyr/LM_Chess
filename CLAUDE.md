@@ -62,8 +62,8 @@ src/
     app/        # i18n (RU/EN), app-state screen router, demo data (ELO_BANDS for onboarding)
     shell/      # window chrome + Topbar (brand, Game/History tabs, connection pill, RU/EN toggle)
     onboarding/ # wizard: Connect → Models (ELO step hidden 2026-08-11 — OnboardingElo stays in the tree unrendered; elo state still feeds prompts at its stored/default value)
-    game/       # interactive game screen — human (White) vs local model (Black) via useGame over src/engine + src/llm/selectMove (Board[hintMove highlight], PromotionPicker, MoveList[Resign two-step confirm], PlayerStrip[real clocks], useChessClock, connection banner, fallback note, HintConsole[real LLM hints via useHint + src/llm/hint], VictoryOverlay[fireworks + fanfare on a win: fireworks.ts/fanfare.ts, sound always on], usePieceSlide[FLIP move animation via slideAnimation.ts])
-    history/    # History screen on real persisted games — gameHistory.ts (GameRecord list + gameStats in localStorage) (stat tiles + match table + empty state)
+    game/       # interactive game screen — human (White) vs local model (Black) via useGame over src/engine + src/llm/selectMove (Board[hintMove highlight], PromotionPicker, MoveList[Resign two-step confirm], PlayerStrip[real clocks], useChessClock, connection banner, fallback note, HintConsole[real LLM hints via useHint + src/llm/hint], VictoryOverlay[fireworks + fanfare on a win: fireworks.ts/fanfare.ts, sound always on], usePieceSlide[FLIP move animation via slideAnimation.ts]) (visible ELO hidden 2026-08-11 from both PlayerStrips — the elo prop stays wired into useGame/useHint prompts unchanged)
+    history/    # History screen on real persisted games — gameHistory.ts (GameRecord list + gameStats in localStorage) (stat tiles + match table + empty state) (visible ELO hidden 2026-08-11 — the "Best ELO" stat tile and the table's ELO column are hidden; GameRecord.elo and gameStats().best stay computed)
     useConnection.ts  # LM Studio connection hook (wraps src/llm)
   App.tsx   # real app entry — routes screen state to the shell + screens above
   main.tsx

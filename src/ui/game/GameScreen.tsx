@@ -103,6 +103,9 @@ export function GameScreen({
   return (
     <div className="game">
       <div className="board-col">
+        {/* ELO badges are hidden on both strips — see
+            docs/superpowers/specs/2026-08-11-hide-elo-ui-design.md. The
+            elo prop deliberately stays wired into useGame/useHint above. */}
         <PlayerStrip
           variant="opp"
           name={opponentName}
