@@ -66,6 +66,7 @@ export function GameScreen({
   pieceStyle,
   baseUrl,
   model,
+  hidden = false,
   selectMoveFn,
   getHintFn,
 }: {
@@ -75,6 +76,9 @@ export function GameScreen({
   pieceStyle: PieceStyle
   baseUrl: string
   model: string
+  // Set while another screen is on top: the game stays mounted (clocks keep
+  // running, the model keeps thinking) instead of restarting on return.
+  hidden?: boolean
   selectMoveFn?: typeof selectMove
   getHintFn?: typeof getHint
 }) {
@@ -101,7 +105,7 @@ export function GameScreen({
   })
 
   return (
-    <div className="game">
+    <div className="game" hidden={hidden}>
       <div className="board-col">
         {/* ELO badges are hidden on both strips — see
             docs/superpowers/specs/2026-08-11-hide-elo-ui-design.md. The

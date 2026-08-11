@@ -27,7 +27,11 @@ export default function App() {
       {screen === 'onb-models' && (
         <OnboardingModels conn={conn} onUse={() => setScreen('game')} />
       )}
-      {screen === 'game' && (
+      {/* The game stays mounted while History is on top, so switching tabs
+          mid-game returns to the same position instead of a fresh board.
+          Both screens are reachable only after a game has started (the
+          topbar tabs appear on 'game' and 'history' only). */}
+      {(screen === 'game' || screen === 'history') && (
         <GameScreen
           opponentName={conn.state.activeModel ?? 'Qwen2.5 14B'}
           elo={elo}
@@ -35,6 +39,7 @@ export default function App() {
           pieceStyle={pieceStyle}
           baseUrl={conn.state.baseUrl}
           model={conn.state.activeModel ?? ''}
+          hidden={screen !== 'game'}
         />
       )}
       {screen === 'history' && <HistoryScreen />}
