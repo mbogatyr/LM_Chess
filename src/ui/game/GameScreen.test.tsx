@@ -156,3 +156,14 @@ test('resigning shows the resignation status and records the game', async () => 
   expect(loadGames()).toHaveLength(1)
   expect(loadGames()[0].opponent).toBe('gemma')
 })
+
+test('neither player strip mentions ELO', () => {
+  const { container } = render(
+    wrap(<GameScreen {...baseProps} selectMoveFn={idleOpponent} />),
+  )
+  const subs = [...container.querySelectorAll('.who small')].map(
+    (s) => s.textContent,
+  )
+  expect(subs).toEqual(['Соперник', 'Белые ходят'])
+  expect(container.textContent).not.toMatch(/ELO/)
+})

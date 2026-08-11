@@ -106,7 +106,7 @@ export function GameScreen({
         <PlayerStrip
           variant="opp"
           name={opponentName}
-          sub={`${t('opp')} · ELO ${elo}`}
+          sub={t('opp')}
           clock={g.blackClock}
           active={state.turn === 'b' && !g.outcome.over}
         />
@@ -134,7 +134,7 @@ export function GameScreen({
         <PlayerStrip
           variant="you"
           name={t('you')}
-          sub={`ELO 1280 · ${t('yoursub')}`}
+          sub={t('yoursub')}
           clock={g.whiteClock}
           active={state.turn === 'w' && !g.outcome.over}
         />
