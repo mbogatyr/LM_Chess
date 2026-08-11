@@ -106,18 +106,18 @@ A PR should not merge unless this is green.
 
 A **separate** workflow, `.github/workflows/azure-swa.yml`, publishes the app to **Azure Static Web Apps** (`ci.yml` stays purely the quality gate):
 
-- **Resource:** SWA `neuro-chess` (Free SKU, West Europe, resource group `neuro-chess-swa-rg`), created **disconnected** (Azure is not linked to the repo). Live at **https://ashy-rock-00119fc03.7.azurestaticapps.net**.
+- **Resource:** SWA `neuro-chess` (Free SKU, West Europe, resource group `neuro-chess-swa-rg`), created **disconnected** (Azure is not linked to the repo). Production URL is the custom domain **https://chess.bogatyrev.uk**; the SWA default hostname `ashy-rock-00119fc03.7.azurestaticapps.net` still serves the same deployment.
 - **Auth:** a deployment token in the repo secret `AZURE_STATIC_WEB_APPS_API_TOKEN` (set via `gh secret set`; not in the repo).
 - **Flow:** the workflow builds with Node 20 (`npm ci && npm run build`, same as CI) and deploys the prebuilt `dist/` via `Azure/static-web-apps-deploy@v1` (`skip_app_build: true`, `app_location: dist`). **push → `main`** deploys production; a **pull_request** opens/updates a preview environment; **PR closed** closes it.
 - Spec: `docs/superpowers/specs/2026-07-20-azure-static-web-apps-deploy-design.md`.
 
-The deployed HTTPS site calls `http://localhost:<port>` in LM Studio — `localhost` is a potentially-trustworthy origin so mixed content isn't blocked, but LM Studio must send CORS headers for the site's origin (see the gotcha below).
+The deployed HTTPS site calls `http://localhost:<port>` in LM Studio. In Chromium-based browsers and Firefox `localhost` is a potentially-trustworthy origin, so mixed content isn't blocked and only LM Studio's CORS headers are needed; **Safari blocks the call outright** (see the gotcha below).
 
 ## Non-obvious decisions & gotchas
 
 - **`typecheck` is `tsc -b`, not `tsc --noEmit`.** The project uses composite project references (`tsconfig.json` → `tsconfig.node.json`), and TypeScript's build mode rejects `--noEmit` (TS6310). `tsc -b` still type-checks fully and fails on any error. Don't "fix" it back to `--noEmit`.
 - **TS build artifacts are redirected out of the repo root.** `tsBuildInfoFile` and the vite-config declaration output go to `node_modules/.tmp/` (gitignored), plus `*.tsbuildinfo` is in `.gitignore`. If you touch the tsconfig topology, keep build output from leaking into the repo root.
-- **Calling `http://localhost` from an HTTPS static host** (Azure) will need LM Studio to send CORS headers for the site's origin, and relies on browsers treating `http://localhost` as a "potentially trustworthy origin". Verify this explicitly when the LLM integration is built — don't assume.
+- **Calling `http://localhost` from an HTTPS static host** (Azure) needs LM Studio to send CORS headers for the site's origin, and relies on the browser treating `http://localhost` as a "potentially trustworthy origin". **Verified 2026-08-11:** it works in Chromium-based browsers (deployed site → `GET http://localhost:1234/api/v0/models` → 200) and LM Studio's `--cors` answers with `Access-Control-Allow-Origin: *`, but **Safari blocks it** — WebKit does not exempt loopback from mixed-content blocking, so the hosted app is unusable there. Workaround: run the app locally over `http://` (or put a locally-trusted HTTPS proxy in front of LM Studio). Note LM Studio binds `127.0.0.1` only — `http://[::1]:1234` does not answer.
 - `.superpowers/` is agent scratch (gitignored, excluded from Prettier). Not part of the product.
 - **Local reasoning models (gemma-4, qwen3.5) return empty `content`** with a small `max_tokens` because tokens go to `reasoning_content` instead. The transports accept an optional `reasoningEffort` (`'none'` disables thinking via LM Studio's `reasoning_effort` param); per-model adapters must set it or `selectMove` degrades to its random fallback.
 
