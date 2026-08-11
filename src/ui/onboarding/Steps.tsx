@@ -1,9 +1,11 @@
 import { useI18n } from '../app/i18n'
 import type { TKey } from '../app/i18n'
 
-const KEYS: TKey[] = ['step_connect', 'step_model', 'step_elo']
+// The ELO step is hidden (2026-08-11 spec) — the wizard shows two steps.
+// step_elo stays in i18n; OnboardingElo stays in the tree, unrendered.
+const KEYS: TKey[] = ['step_connect', 'step_model']
 
-export function Steps({ active }: { active: 1 | 2 | 3 }) {
+export function Steps({ active }: { active: 1 | 2 }) {
   const { t } = useI18n()
   return (
     <div className="onb-steps">
@@ -11,7 +13,7 @@ export function Steps({ active }: { active: 1 | 2 | 3 }) {
         <i key={k} className={i < active ? 'on' : ''} />
       ))}{' '}
       <span>
-        {t(KEYS[active - 1])} · {active}/3
+        {t(KEYS[active - 1])} · {active}/{KEYS.length}
       </span>
     </div>
   )

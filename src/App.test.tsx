@@ -27,23 +27,20 @@ function renderApp() {
   )
 }
 
-test('connect → choose model → ELO → game', async () => {
+test('connect → choose model → game', async () => {
   vi.spyOn(client, 'listModels').mockResolvedValue(models)
   renderApp()
   // connect (auto-advances to model selection on success)
   await userEvent.click(
     screen.getByRole('button', { name: 'Проверить соединение' }),
   )
-  // models → play the loaded model
+  // models → play the loaded model: lands directly on the game screen
   await userEvent.click(await screen.findByRole('button', { name: 'Играть' }))
-  // ELO → start
-  await userEvent.click(
-    await screen.findByRole('button', { name: 'Начать партию' }),
-  )
-  // game screen: board rendered, your-move status, opponent = chosen model
   expect(await screen.findByText('Ваш ход')).toBeInTheDocument()
   expect(screen.getByText('google/gemma-4-e4b')).toBeInTheDocument()
   expect(document.querySelector('.game .board')).not.toBeNull()
+  // the ELO step never appears
+  expect(screen.queryByText('Начать партию')).not.toBeInTheDocument()
 })
 
 test('topbar language toggle switches copy on the connect screen', async () => {

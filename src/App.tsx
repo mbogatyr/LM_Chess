@@ -3,7 +3,6 @@ import { useAppState } from './ui/app/appState'
 import { AppShell } from './ui/shell/AppShell'
 import { OnboardingConnect } from './ui/onboarding/OnboardingConnect'
 import { OnboardingModels } from './ui/onboarding/OnboardingModels'
-import { OnboardingElo } from './ui/onboarding/OnboardingElo'
 import { GameScreen } from './ui/game/GameScreen'
 import { HistoryScreen } from './ui/history/HistoryScreen'
 
@@ -21,14 +20,12 @@ export default function App() {
           onConnected={() => setScreen('onb-models')}
         />
       )}
+      {/* The ELO step (onb-elo / OnboardingElo) is hidden — see
+          docs/superpowers/specs/2026-08-11-hide-elo-step-design.md. The
+          component stays in src/ui/onboarding; `elo` keeps its stored or
+          default value and still flows into the prompts below. */}
       {screen === 'onb-models' && (
-        <OnboardingModels conn={conn} onUse={() => setScreen('onb-elo')} />
-      )}
-      {screen === 'onb-elo' && (
-        <OnboardingElo
-          onBack={() => setScreen('onb-models')}
-          onStart={() => setScreen('game')}
-        />
+        <OnboardingModels conn={conn} onUse={() => setScreen('game')} />
       )}
       {screen === 'game' && (
         <GameScreen
