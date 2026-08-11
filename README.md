@@ -7,7 +7,7 @@ No backend, no API keys, no cloud — the app is static files in your browser,
 and the opponent is whatever model you have loaded in
 [LM Studio](https://lmstudio.ai/).
 
-**Live app:** https://ashy-rock-00119fc03.7.azurestaticapps.net
+**Live app:** **https://chess.bogatyrev.uk**
 (bring your own LM Studio — see [Using the hosted app](#using-the-hosted-app))
 
 ## The idea
