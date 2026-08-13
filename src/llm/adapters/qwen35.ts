@@ -2,6 +2,7 @@ import type { GameState, MoveInput } from '../../engine/types'
 import { parseSanCandidates } from './genericFen'
 import { toFen, toLegalSan, toPgn, toSanMoveChain } from './encoding'
 import type { ModelAdapter, ModelRequest, MoveContext } from './types'
+import { parseFirstSan } from './parseSan'
 
 // qwen/qwen3.5-9b, tuned from the Prompt Lab campaign
 // (docs/prompt-lab/2026-08-11-qwen3.5-9b-campaign.md). Winner: v6-pgn-completion
@@ -58,18 +59,6 @@ function firstAttemptPrompt(ctx: MoveContext): string {
   const lead =
     ctx.state.turn === 'w' ? `${movetext ? ' ' : ''}${fullmove}.` : ''
   return HEADERS + movetext + lead
-}
-
-const SAN_RE = /(O-O-O|O-O|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?)/g
-
-// First-mentioned first: a completion continues the movetext, so the first
-// token IS the move (later tokens are the model continuing the game).
-export function parseFirstSan(reply: string): string[] {
-  const out: string[] = []
-  for (const m of reply.matchAll(SAN_RE)) {
-    if (!out.includes(m[0])) out.push(m[0])
-  }
-  return out
 }
 
 // --- Retry: v8-karpov-legal's legal-list structure (transplanted from
