@@ -1,5 +1,6 @@
-export const SAN_RE =
-  /(O-O-O|O-O|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?)/g
+// Shared SAN-extraction utility for completion-style adapter replies.
+
+const SAN_RE = /(O-O-O|O-O|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?)/g
 
 // First-mentioned first: a completion continues the movetext, so the first
 // token IS the move (later tokens are the model continuing the game).

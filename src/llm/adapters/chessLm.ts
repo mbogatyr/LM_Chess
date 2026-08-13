@@ -32,8 +32,12 @@ const ALPACA_PREAMBLE =
 
 const BAD_REPLY_MAX = 80
 
-const truncate = (s: string): string =>
-  s.length > BAD_REPLY_MAX ? `${s.slice(0, BAD_REPLY_MAX)}…` : s
+const truncate = (s: string): string => {
+  const collapsed = s.replace(/\s+/g, ' ')
+  return collapsed.length > BAD_REPLY_MAX
+    ? `${collapsed.slice(0, BAD_REPLY_MAX)}…`
+    : collapsed
+}
 
 function buildPrompt(ctx: MoveContext): string {
   const correction = ctx.correction

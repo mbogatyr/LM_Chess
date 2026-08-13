@@ -78,6 +78,21 @@ test('truncates a rambling badReply in the correction note', () => {
   expect(req.prompt).toContain(`"${'x'.repeat(80)}…"`)
 })
 
+test('collapses newlines in a badReply onto a single note line', () => {
+  const req = chessLmAdapter.buildRequest(
+    ctx({
+      correction: { badReply: 'Qzz9\nrambling\ntext', reason: 'illegal' },
+    }),
+  )
+  if (req.kind !== 'completion') throw new Error('expected completion')
+  expect(req.prompt).toContain('Qzz9 rambling text')
+  const noteLine = req.prompt
+    .split('\n')
+    .find((line) => line.startsWith('Note:'))
+  expect(noteLine).toBeDefined()
+  expect(noteLine).toContain('Qzz9 rambling text')
+})
+
 test('parseMoves takes SAN candidates in order of first mention', () => {
   expect(chessLmAdapter.parseMoves('e5 Nf3 Nc6', ctx())).toEqual([
     'e5',
