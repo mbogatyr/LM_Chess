@@ -791,6 +791,15 @@ body {
   background: var(--color-accent);
   box-shadow: 0 0 8px var(--color-accent);
 }
+.onb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.onb-head h2 {
+  margin: 0;
+}
 .onb-card h2 {
   margin: 0;
 }
