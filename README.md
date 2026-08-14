@@ -109,6 +109,10 @@ npm run prompt-lab -- race --model <model-id> --reasoning-effort none
   model's, honouring `prefers-reduced-motion`), captures and checks are
   highlighted, and a win triggers canvas fireworks with a synthesized
   fanfare — no image or audio assets.
+- **Recommended models.** The model picker stars ★ the models that were
+  actually tested in real games and a «Recommended models» popup ranks them
+  with a one-line verdict each — curated in
+  [`recommendedModels.json`](src/ui/onboarding/recommendedModels.json).
 - **Bilingual.** Full RU/EN interface, switchable at any time.
 
 ## Using the hosted app
