@@ -1,0 +1,32 @@
+{
+  "updated": "2026-08-13",
+  "models": [
+    {
+      "rank": 1,
+      "ids": ["chesslm-0.01-llama-3.1-8b"],
+      "name": "chessLM 0.01 (Llama 3.1 8B)",
+      "comment": {
+        "ru": "Шахматный файнтьюн — уверенная дебютная теория, слабеет после ~20 ходов.",
+        "en": "Chess finetune — solid opening theory, weakens after ~20 moves."
+      }
+    },
+    {
+      "rank": 2,
+      "ids": ["qwen/qwen3.5-9b"],
+      "name": "Qwen3.5 9B",
+      "comment": {
+        "ru": "Универсальная reasoning-модель; двухступенчатый промпт даёт приличную игру.",
+        "en": "General reasoning model; a two-stage prompt gets decent play out of it."
+      }
+    },
+    {
+      "rank": 3,
+      "ids": ["google/gemma-4-12b"],
+      "name": "Gemma 4 12B",
+      "comment": {
+        "ru": "Надёжнее всех держится в рамках легальных ходов, играет проще.",
+        "en": "Most reliable at staying legal, plays the plainest chess."
+      }
+    }
+  ]
+}

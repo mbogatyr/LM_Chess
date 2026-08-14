@@ -46,6 +46,11 @@ export const STRINGS = {
     model_ram: 'ОЗУ',
     model_ctx: 'Контекст',
     model_q: 'Квант',
+    rec_btn: 'Рекомендуемые модели',
+    rec_h: 'Проверенные модели',
+    rec_p: 'Эти модели проверены в реальных партиях — от лучшей к худшей.',
+    rec_close: 'Закрыть',
+    rec_star: 'рекомендуемая модель',
 
     confirm_h: 'Готовы сыграть?',
     confirm_p:
@@ -173,6 +178,11 @@ export const STRINGS = {
     model_ram: 'RAM',
     model_ctx: 'Context',
     model_q: 'Quant',
+    rec_btn: 'Recommended models',
+    rec_h: 'Tested models',
+    rec_p: 'These models were tested in real games — best first.',
+    rec_close: 'Close',
+    rec_star: 'recommended model',
 
     confirm_h: 'Ready to play?',
     confirm_p:

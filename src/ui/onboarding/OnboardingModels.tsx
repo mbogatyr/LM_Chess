@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { useI18n } from '../app/i18n'
 import type { useConnection } from '../useConnection'
 import type { LMModel } from '../../llm/types'
 import { Steps } from './Steps'
+import { findRecommendation } from './recommended'
+import { RecommendedModelsDialog } from './RecommendedModelsDialog'
 
 type UseConnection = ReturnType<typeof useConnection>
 
@@ -14,12 +17,22 @@ export function OnboardingModels({
 }) {
   const { t } = useI18n()
   const { models, loadingModelId, error } = conn.state
+  const [showRecommended, setShowRecommended] = useState(false)
 
   return (
     <div className="onb">
       <div className="onb-card" style={{ width: 'min(600px, 100%)' }}>
         <Steps active={2} />
-        <h2>{t('model_h')}</h2>
+        <div className="onb-head">
+          <h2>{t('model_h')}</h2>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setShowRecommended(true)}
+          >
+            {t('rec_btn')}
+          </button>
+        </div>
         <p className="lede">{t('model_p')}</p>
         {error && <p role="alert">{error}</p>}
         <div className="model-list">
@@ -29,7 +42,18 @@ export function OnboardingModels({
             return (
               <div className="model-row" key={model.id}>
                 <div className="mi">
-                  <b>{model.id}</b>
+                  <b>
+                    {model.id}
+                    {findRecommendation(model.id) && (
+                      <span
+                        className="model-star"
+                        role="img"
+                        aria-label={t('rec_star')}
+                      >
+                        ★
+                      </span>
+                    )}
+                  </b>
                   <div className="meta">
                     <span>{model.type}</span>
                     {model.quantization && (
@@ -81,6 +105,9 @@ export function OnboardingModels({
             )
           })}
         </div>
+        {showRecommended && (
+          <RecommendedModelsDialog onClose={() => setShowRecommended(false)} />
+        )}
       </div>
     </div>
   )

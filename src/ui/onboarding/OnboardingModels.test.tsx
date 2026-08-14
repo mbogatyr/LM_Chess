@@ -21,6 +21,16 @@ const models: LMModel[] = [
   { id: 'loaded-model', type: 'vlm', state: 'loaded' },
 ]
 
+const modelsWithTested: LMModel[] = [
+  ...models,
+  {
+    id: 'chesslm-0.01-llama-3.1-8b',
+    type: 'llm',
+    state: 'not-loaded',
+    quantization: 'Q4_K_M',
+  },
+]
+
 function conn(overrides = {}): UseConnection {
   return {
     state: { models, loadingModelId: null },
@@ -74,4 +84,40 @@ test('renders a load error as an alert', () => {
     </I18nProvider>,
   )
   expect(screen.getByRole('alert')).toHaveTextContent('boom')
+})
+
+test('tested models get a star, others do not', () => {
+  render(
+    <I18nProvider>
+      <OnboardingModels
+        conn={conn({
+          state: { models: modelsWithTested, loadingModelId: null },
+        })}
+        onUse={() => {}}
+      />
+    </I18nProvider>,
+  )
+  const testedRow = screen
+    .getByText('chesslm-0.01-llama-3.1-8b')
+    .closest('.model-row')
+  const plainRow = screen.getByText('not-loaded-model').closest('.model-row')
+  expect(testedRow?.querySelector('.model-star')).not.toBeNull()
+  expect(plainRow?.querySelector('.model-star')).toBeNull()
+})
+
+test('Recommended models button opens and closes the dialog', async () => {
+  render(
+    <I18nProvider>
+      <OnboardingModels conn={conn()} onUse={() => {}} />
+    </I18nProvider>,
+  )
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  await userEvent.click(
+    screen.getByRole('button', {
+      name: 'Рекомендуемые модели',
+    }),
+  )
+  expect(screen.getByRole('dialog')).toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Закрыть' }))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
