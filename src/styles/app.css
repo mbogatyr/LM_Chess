@@ -1104,6 +1104,56 @@ input[type='range'].slider::-moz-range-thumb {
 .promo-btn:hover {
   border-color: var(--color-accent);
 }
+/* recommended-models dialog (full-screen scrim over the onboarding card) */
+.rec-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--color-bg) 68%, transparent);
+}
+.rec-card {
+  width: min(480px, calc(100% - 2 * var(--space-4)));
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.rec-card h3 {
+  margin: 0;
+}
+.rec-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.rec-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.rec-row p {
+  margin: 0;
+  color: var(--color-neutral-400);
+  font-size: 13px;
+}
+.rec-rank {
+  color: var(--color-neutral-500);
+  font-size: 12px;
+  min-width: 26px;
+}
+.model-star {
+  color: #f5c542;
+  margin-left: var(--space-1);
+}
 .conn-error {
   display: flex;
   align-items: center;
